@@ -59,12 +59,45 @@ See [MONOREPO-STRUCTURE.md](docs/architecture/MONOREPO-STRUCTURE.md) for details
 
 Standalone packages can be extracted to separate repositories. See [PACKAGE-MIGRATION-GUIDE.md](docs/migration/PACKAGE-MIGRATION-GUIDE.md).
 
+## Publishing
+
+### Quick Publish Commands
+```bash
+# One-command releases
+pnpm run release:patch    # Bug fixes: 1.0.0 → 1.0.1
+pnpm run release:minor    # New features: 1.0.0 → 1.1.0
+pnpm run release:major    # Breaking changes: 1.0.0 → 2.0.0
+pnpm run release:alpha    # Test versions: 1.0.0 → 1.0.1-alpha.0
+
+# Quick publish (without versioning)
+pnpm run publish:now
+
+# Canary/test releases
+pnpm run publish:canary
+```
+
+### Automatic Publishing (GitHub Actions)
+```bash
+# Create and push a tag
+git tag v1.0.0
+git push origin v1.0.0
+```
+→ Automatically builds, tests, and publishes to NPM
+
+**Setup Required:**
+1. Create NPM token at [npmjs.com/settings/tokens](https://www.npmjs.com/settings/tokens)
+2. Add `NPM_TOKEN` to GitHub repository secrets
+
+📚 **Full Guide:** See [PUBLISHING.md](PUBLISHING.md) for complete publishing documentation
+
 ## Documentation
 
 - [PorkAte FRD](docs/product/PorkAte-FRD.md)
 - [PorkAte TRD](docs/product/PorkAte-TRD.md)
 - [Development TODO](docs/product/PorkAte-TODO.md)
 - [TownKrier FRD](.docs/product/townkrier/TownKrier-FRD.md)
+- [Publishing Guide](PUBLISHING.md) - NPM publishing documentation
+- [NPM Quick Reference](.docs/npm-publishing-quickref.md)
 
 ## License
 
