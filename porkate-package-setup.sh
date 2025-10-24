@@ -1,16 +1,19 @@
 #!/bin/bash
 
-# PorkAte Wallet Package - Complete Project Setup Script
-# Aligned with PorkAte FRD v2.0 - October 23, 2025
+# PorkAte Wallet Package - Complete Monorepo Setup Script
+# Lerna + PNPM Monorepo with Standalone Extractable Packages
+# Aligned with PorkAte FRD v2.0 - October 24, 2025
 # Author: Jeremiah Olisa
 
 set -e  # Exit on error
 
-echo "🚀 PorkAte Wallet Package - Project Setup"
+echo "🚀 PorkAte Wallet Package - Monorepo Setup"
 echo "=========================================="
 echo "Package: PorkAte (pronounced 'Pocket')"
 echo "Version: 1.0.0-alpha"
 echo "FRD Version: 2.0"
+echo "Architecture: Lerna + PNPM Monorepo"
+echo "Standalone Packages: Invalid8, TownKrier, Kolo"
 echo "=========================================="
 echo ""
 
@@ -32,32 +35,73 @@ fi
 
 PNPM_VERSION=$(pnpm -v)
 echo "✅ pnpm version: $PNPM_VERSION"
+
+# Check if Lerna is installed globally, if not install it
+if ! command -v lerna &> /dev/null; then
+    echo "⚠️  Lerna is not installed. Installing Lerna globally..."
+    npm install -g lerna
+    echo "✅ Lerna installed successfully"
+fi
+
+LERNA_VERSION=$(lerna -v)
+echo "✅ Lerna version: $LERNA_VERSION"
 echo ""
 
 # Project name
 PROJECT_NAME="porkate"
 
 # Create root directory
-echo "📁 Creating project structure..."
+echo "📁 Creating Lerna monorepo structure..."
 # mkdir -p $PROJECT_NAME
 # cd $PROJECT_NAME
+
+# Initialize Lerna monorepo
+echo "🔧 Initializing Lerna monorepo..."
+cat > lerna.json << 'EOF'
+{
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "version": "independent",
+  "npmClient": "pnpm",
+  "useWorkspaces": true,
+  "command": {
+    "publish": {
+      "conventionalCommits": true,
+      "message": "chore(release): publish packages",
+      "registry": "https://registry.npmjs.org/"
+    },
+    "version": {
+      "allowBranch": ["main", "develop"],
+      "message": "chore(release): version packages"
+    }
+  },
+  "packages": [
+    "packages/*",
+    "standalone-packages/*"
+  ]
+}
+EOF
 
 # Create pnpm workspace configuration
 echo "📝 Creating pnpm workspace configuration..."
 cat > pnpm-workspace.yaml << 'EOF'
 packages:
+  # Core PorkAte packages (non-extractable)
   - 'packages/*'
-  - 'adapters/*'
+  
+  # Standalone packages (extraction-ready)
+  - 'standalone-packages/*'
+  
+  # Examples
   - 'examples/*'
 EOF
 
 # Initialize root package.json for pnpm workspace
 cat > package.json << 'EOF'
 {
-  "name": "porkate",
-  "version": "1.0.0-alpha.1",
+  "name": "porkate-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "description": "Provider-agnostic, plug-and-play wallet package for fintech applications",
+  "description": "Provider-agnostic, plug-and-play wallet package with standalone adapters",
   "author": "Jeremiah Olisa",
   "license": "MIT",
   "repository": {
@@ -69,25 +113,34 @@ cat > package.json << 'EOF'
     "fintech",
     "payments",
     "banking",
-    "prisma",
-    "typescript",
-    "porkate",
-    "digital-wallet",
-    "financial-services"
+    "monorepo",
+    "lerna",
+    "invalid8",
+    "townkrier",
+    "kolo"
   ],
   "scripts": {
-    "build": "pnpm -r build",
-    "dev": "pnpm -r --parallel dev",
-    "test": "pnpm -r test",
-    "test:cov": "pnpm -r test:cov",
-    "lint": "pnpm -r lint",
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build --stream",
+    "build:core": "lerna run build --scope=@porkate/core --stream",
+    "build:invalid8": "lerna run build --scope=@invalid8/core --stream",
+    "build:townkrier": "lerna run build --scope=@townkrier/core --stream",
+    "build:kolo": "lerna run build --scope=@kolo/core --stream",
+    "dev": "lerna run dev --parallel",
+    "test": "lerna run test --stream",
+    "test:cov": "lerna run test:cov --stream",
+    "lint": "lerna run lint --stream",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "clean": "pnpm -r clean && rm -rf node_modules",
-    "prisma:generate": "pnpm --filter @porkate/core prisma:generate",
-    "prisma:migrate": "pnpm --filter @porkate/core prisma:migrate",
-    "prisma:studio": "pnpm --filter @porkate/core prisma:studio",
-    "prisma:seed": "pnpm --filter @porkate/core prisma:seed"
+    "clean": "lerna clean -y && rm -rf node_modules",
+    "clean:build": "lerna run clean --stream",
+    "version": "lerna version --conventional-commits",
+    "publish": "lerna publish from-package",
+    "publish:canary": "lerna publish --canary",
+    "zenstack:generate": "lerna run zenstack:generate --scope=@porkate/core",
+    "prisma:studio": "lerna run prisma:studio --scope=@porkate/core",
+    "prisma:migrate": "lerna run prisma:migrate --scope=@porkate/core",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",
@@ -97,45 +150,64 @@ cat > package.json << 'EOF'
     "eslint-plugin-prettier": "^5.1.3",
     "prettier": "^3.2.5",
     "typescript": "^5.3.3",
-    "turbo": "^1.12.4"
+    "lerna": "^8.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
   },
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   },
-  "packageManager": "pnpm@8.15.4"
+  "packageManager": "pnpm@8.15.4",
+  "workspaces": [
+    "packages/*",
+    "standalone-packages/*",
+    "examples/*"
+  ]
 }
 EOF
 
 # Create directory structure aligned with FRD
-echo "📂 Creating comprehensive directory structure..."
-mkdir -p packages/core/src/{modules/{wallet,transaction,kyc,lien,auth,ledger,event},providers/{database,cache,queue,storage,notification,payment-gateway},common/{decorators,filters,interceptors,pipes,guards,utils,errors},config,constants,types,interfaces}
+echo "📂 Creating comprehensive monorepo directory structure..."
+
+# Core PorkAte packages (non-extractable)
+mkdir -p packages/core/src/{modules/{wallet,transaction,kyc,lien,ledger},providers/{database},common/{decorators,filters,interceptors,pipes,guards,utils,errors},config,constants,types,interfaces}
 mkdir -p packages/core/prisma/{migrations,seeds}
 mkdir -p packages/core/test/{unit,integration,e2e}
+mkdir -p packages/core/zenstack
 
-# Adapter packages (Provider Agnostic Architecture - FRD Section 2.2)
-mkdir -p adapters/cache/{redis,memory}/src
-# mkdir -p adapters/cache/memory/src
-mkdir -p adapters/nosql/{cassandra,mongodb}/src
-# mkdir -p adapters/nosql/mongodb/src
-mkdir -p adapters/event/{rabbitmq,kafka}/src
-# mkdir -p adapters/event/kafka/src
-mkdir -p adapters/payment/{paystack,flutterwave}/src
-# mkdir -p adapters/payment/flutterwave/src
-mkdir -p adapters/storage/{s3,local}/src
-# mkdir -p adapters/storage/local/src
+# NoSQL adapter package (internal to PorkAte)
+mkdir -p packages/nosql/src/{cassandra,mongodb,interfaces}
+mkdir -p packages/nosql/test
+
+# Standalone packages (extraction-ready - can be moved to separate repos)
+# Invalid8 - Caching Library
+mkdir -p standalone-packages/invalid8/src/{core,adapters/{memory,redis},types,interfaces,utils}
+mkdir -p standalone-packages/invalid8/test/{unit,integration}
+mkdir -p standalone-packages/invalid8/docs
+
+# TownKrier - Event System (used by Invalid8 and PorkAte)
+mkdir -p standalone-packages/townkrier/src/{core,adapters/{memory,rabbitmq,kafka},types,interfaces,utils}
+mkdir -p standalone-packages/townkrier/test/{unit,integration}
+mkdir -p standalone-packages/townkrier/docs
+
+# Kolo - Storage Adapter
+mkdir -p standalone-packages/kolo/src/{core,adapters/{local,s3,azure},types,interfaces,utils}
+mkdir -p standalone-packages/kolo/test/{unit,integration}
+mkdir -p standalone-packages/kolo/docs
 
 # Examples
-mkdir -p examples/{basic-usage,nestjs-integration,express-integration}/src
+mkdir -p examples/{porkate-basic,porkate-nestjs,porkate-express}/src
+mkdir -p examples/{invalid8-usage,townkrier-usage,kolo-usage}/src
 
-# Documentation (FRD Section 12)
-mkdir -p docs/{getting-started,api-reference,guides,examples,architecture}
+# Documentation (centralized)
+mkdir -p docs/{product,packages/{invalid8,townkrier,kolo},migration,architecture,guides}
 
 # Scripts and tools
-mkdir -p scripts
+mkdir -p scripts/{migration,setup,publishing}
 mkdir -p .github/workflows
 
-echo "✅ Directory structure created"
+echo "✅ Monorepo directory structure created"
 echo ""
 
 # Create core package

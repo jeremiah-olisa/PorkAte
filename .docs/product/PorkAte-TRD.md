@@ -62,14 +62,18 @@ This TRD defines the technical implementation details for the PorkAte wallet pac
 - `TransactionManager`: Handles debit/credit, transfers, ledger, idempotency, reversal.
 - `LienManager`: Handles lien placement, release, expiry.
 - `EventManager`: Handles event emission and subscription.
-- `AuthManager`: Handles API key and user-level authentication.
+- `AuthorizationManager`: Handles wallet transaction authorization (PIN, biometric, OTP) ONLY.
+  - **Note:** Does NOT handle user authentication (login/logout/email/password). Applications use their own auth providers (Clerk, Auth0, Firebase, NextAuth, etc.).
+  - **Note:** Does NOT handle application-level authentication (API keys). PorkAte is a library/package, not a SaaS service.
 
 ---
 
 ## 5. Data Models
 
 - **Wallet:**
-  - Fields: id (UUID), accountNumber, phoneNumber, type, status, balance, currency, kycTier, hash, timestamps
+  - Fields: id (UUID), userId (external), accountNumber, phoneNumber, type, status, balance, currency, kycTier, pin (hashed), hash, timestamps
+  - **Note:** userId links to external user management system (Clerk, Auth0, Firebase, NextAuth, etc.)
+  - **Note:** PIN is for transaction authorization only, not user login
 - **KYC Profile:**
   - Fields: id, walletId, profileType, tier, data (JSON), status, documents, timestamps
 - **Transaction:**
@@ -85,12 +89,15 @@ This TRD defines the technical implementation details for the PorkAte wallet pac
 
 ## 6. Security
 
-- **Encryption:** AES-256-GCM for data at rest; TLS 1.3+ for data in transit.
-- **Hashing:** bcrypt/argon2 for PINs; SHA-256/SHA-512 for integrity.
-- **API Keys:** Public/Secret key pairs; rotation and expiration supported.
-- **Rate Limiting:** Configurable per API key; implemented via cache adapter.
+- **Encryption:** AES-256-GCM for data at rest; TLS 1.3+ for data in transit (when deployed as API).
+- **Hashing:** bcrypt/argon2 for wallet PINs; SHA-256/SHA-512 for wallet integrity.
+- **User Authentication:** NOT handled by PorkAte. Applications use their own auth providers (Clerk, Auth0, Firebase, NextAuth, custom, etc.).
+- **Transaction Authorization:** PIN/Biometric/OTP for wallet operations ONLY; wallet-scoped, not session-based.
+- **Application Authentication:** NOT needed - PorkAte is a library/package, not a SaaS service with API keys.
+- **Rate Limiting:** Optional; can be implemented by consuming application if needed.
 - **Input Validation:** All inputs validated using class-validator or custom logic.
 - **Audit Logging:** Immutable logs; stored in append-only format.
+- **Trust Model:** PorkAte trusts the calling application to handle user identity verification. The application passes userId to PorkAte after authenticating the user.
 
 ---
 

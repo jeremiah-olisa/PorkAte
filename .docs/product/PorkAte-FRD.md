@@ -25,6 +25,7 @@ This document outlines the functional requirements for **PorkAte**, an open-sour
 - **Industry Standards:** Follows financial regulations (CBN guidelines, PCI-DSS compliance principles) and accounting best practices.
 - **Extensible:** Easy to create custom adapters/providers when official support doesn't exist.
 - **Production Ready:** Built with enterprise-grade security, performance, and reliability in mind.
+- **Authentication Neutral:** PorkAte does NOT handle user authentication (login/logout/registration/password management). It focuses solely on wallet operations. Applications integrate with their preferred authentication providers (Clerk, Auth0, Firebase, NextAuth, etc.).
 
 ### 2.2 Adapter/Provider Architecture
 
@@ -37,6 +38,8 @@ PorkAte uses a flexible adapter pattern for all external dependencies:
 - **Payment Gateway Adapter:** Paystack, Flutterwave, Stripe, or custom providers
 - **Notification Adapter:** SMS, Email, Push notifications
 - **Storage Adapter:** For KYC documents (AWS S3, Azure Blob, local filesystem, etc.)
+
+**Note:** User authentication/authorization is handled by the consuming application using their chosen provider. PorkAte provides wallet-level transaction authorization (PIN, biometric, OTP) only.
 
 Users can easily extend any adapter by implementing the corresponding interface.
 
@@ -136,36 +139,43 @@ The PorkAte package encompasses:
 
 ---
 
-### 4.3. Wallet Authentication and Authorization
+### 4.3. Wallet Transaction Authorization
 
-- **FR-WA-001: Application-Level Authentication:**
+**IMPORTANT:** PorkAte is a **library/package**, NOT a SaaS service, therefore:
+- **NO application-level authentication (API keys)** is needed
+- **NO user authentication (login/logout/email/password/sessions)** is provided
 
-  - The package SHALL require calling applications to authenticate using API keys (Public Key and Secret Key pairs).
-  - Authentication SHALL be handled through middleware/decorators.
-  - The package SHALL support key rotation and expiration.
-  - Rate limiting SHALL be configurable per API key.
+User identity management is the responsibility of the consuming application. Applications should use their own authentication systems (e.g., Clerk, Auth0, Firebase Auth, NextAuth, or custom solutions).
 
-- **FR-WA-002: User-Level Authentication:**
+PorkAte focuses solely on **wallet transaction authorization** for financial operations.
 
-  - For sensitive operations (debit transactions, wallet modifications, KYC updates), the package SHALL require user-level authentication.
-  - Supported authentication methods SHALL include:
+- **FR-WA-001: Wallet Transaction Authorization:**
+
+  - For sensitive wallet operations (debit transactions, transfers, wallet modifications), the package SHALL require transaction-level authorization.
+  - Supported authorization methods SHALL include:
     - PIN (Personal Identification Number) - hashed using bcrypt/argon2
     - Biometric verification (Face ID, Fingerprint) through device attestation
     - Pattern Recognition
     - OTP (One-Time Password) via configured notification adapter
-  - Authentication credentials SHALL be stored securely using industry-standard hashing algorithms.
+  - Authorization credentials SHALL be stored securely using industry-standard hashing algorithms.
+  - **Note:** These methods authorize wallet operations, not user login.
 
-- **FR-WA-003: Transaction Authorization:**
+- **FR-WA-002: Transaction Authorization Flow:**
 
-  - All sensitive operations SHALL require authentication before execution.
-  - The package SHALL validate authentication credentials before processing transactions.
-  - Failed authentication attempts SHALL be logged and rate-limited.
-  - The package SHALL support configurable authentication retry policies.
+  - All sensitive wallet operations SHALL require authorization before execution.
+  - The package SHALL validate authorization credentials (PIN, biometric, OTP) before processing transactions.
+  - Failed authorization attempts SHALL be logged and rate-limited (e.g., max 3 PIN attempts per wallet).
+  - The package SHALL support configurable authorization retry policies.
+  - Authorization is wallet-scoped, not session-based.
 
-- **FR-WA-004: Session Management:**
-  - The package SHALL NOT maintain user sessions internally.
-  - Session management SHALL be the responsibility of the consuming application.
-  - The package SHALL provide utilities for authentication validation that can be integrated with application session management.
+- **FR-WA-003: User Identity Integration:**
+  - The package SHALL NOT handle user registration, login, logout, password management, or session management.
+  - The consuming application SHALL manage user identities and sessions using their preferred authentication provider.
+  - The package SHALL accept a `userId` or `externalUserId` parameter to link wallets to application users.
+  - User identity verification SHALL be the responsibility of the consuming application before calling wallet operations.
+  - The package SHALL trust the calling application to provide valid userId after authenticating the user.
+  - **Trust Model:** Application handles user authentication; PorkAte handles wallet transaction authorization.
+  - **Example Integration:** Application authenticates user via Clerk → Application verifies user identity → Application calls PorkAte with userId → User authorizes transaction with PIN/biometric.
 
 ---
 
@@ -779,13 +789,13 @@ The PorkAte package encompasses:
 
 ### 5.3. Security
 
-- **NFR-SE-001:** All sensitive data in transit SHALL be encrypted using TLS 1.3+.
+- **NFR-SE-001:** All sensitive data in transit SHALL be encrypted using TLS 1.3+ (when deployed as API).
 - **NFR-SE-002:** All sensitive data at rest SHALL be encrypted using AES-256.
 - **NFR-SE-003:** PINs SHALL be hashed using bcrypt or Argon2 with appropriate work factors.
-- **NFR-SE-004:** The package SHALL implement rate limiting to prevent brute force attacks.
+- **NFR-SE-004:** The package SHALL implement rate limiting on wallet transaction authorization to prevent brute force attacks (e.g., max 3 PIN attempts).
 - **NFR-SE-005:** The package SHALL validate all inputs to prevent injection attacks.
-- **NFR-SE-006:** API keys SHALL be rotatable without service disruption.
-- **NFR-SE-007:** The package SHALL support IP whitelisting for API access.
+- **NFR-SE-006:** The package SHALL trust the calling application to handle user authentication.
+- **NFR-SE-007:** The package SHALL not manage application-level API keys (as it's a library, not a SaaS service).
 
 ### 5.4. Reliability
 
@@ -1045,14 +1055,9 @@ interface PorkAteConfig {
       pin: "bcrypt" | "argon2";
       integrity: "sha256" | "sha512";
     };
-    apiKeys: {
-      rotationEnabled: boolean;
-      rotationPeriodDays?: number;
-    };
-    rateLimit: {
-      enabled: boolean;
-      windowMs: number;
-      maxRequests: number;
+    transactionAuthorization: {
+      maxPINAttempts: number; // Default: 3
+      pinLockoutDurationMinutes: number; // Default: 30
     };
   };
 
@@ -1234,7 +1239,10 @@ const kyc = await wallet.kyc.create({
 ### 9.4. Performing a Transfer
 
 ```typescript
-// User authenticates with PIN
+// NOTE: User has already been authenticated by the application (e.g., via Clerk, Auth0, etc.)
+// Application passes userId to PorkAte after authenticating the user
+
+// User authorizes the transaction with PIN
 const authResult = await wallet.auth.verifyPIN({
   walletId: newWallet.id,
   pin: "1234",
