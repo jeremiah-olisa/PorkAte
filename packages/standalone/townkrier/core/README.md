@@ -1,74 +1,129 @@
-# TownKrier
+# @townkrier/core
 
-Laravel-style notification system for Node.js - send notifications across multiple channels with a unified API.
+Laravel-style notification system for Node.js with multiple channels and providers.
 
-**Status:** ✅ Extraction-Ready (Can be moved to separate repository)
+## Overview
+
+Townkrier is a flexible, provider-agnostic notification system inspired by Laravel's notification system. It provides a unified API for sending notifications through multiple channels (email, SMS, push notifications, in-app, etc.) with support for multiple providers per channel.
 
 ## Features
 
-- 📧 **Multi-Channel Support:** Email, SMS, Push, In-App, Slack, Database
-- 🎯 **Provider Agnostic:** Works with Resend, Twilio, Firebase, OneSignal, and more
-- 🚀 **Laravel-inspired API:** Familiar and elegant notification classes
-- ⚡ **Queue Support:** Async notification delivery
-- 🛡️ **Type-Safe:** Full TypeScript support
-- 🔌 **Framework Agnostic:** Works with Express, NestJS, or standalone
+- 🔌 **Multiple Channels**: Email, SMS, Push Notifications, In-App, Slack, and more
+- 🔄 **Provider Agnostic**: Easily switch between providers (Resend, Termii, FCM, etc.)
+- �� **Type Safe**: Full TypeScript support with comprehensive type definitions
+- 🏗️ **Well Structured**: Clean architecture following SOLID principles
+- 🔧 **Factory Pattern**: Easy channel registration and management
+- 📦 **Standalone Packages**: Each adapter is a separate package
+- 🚦 **Fallback Support**: Automatic fallback to alternative channels on failure
+- 🎨 **Extensible**: Easy to create custom channels and adapters
 
 ## Installation
 
 ```bash
 npm install @townkrier/core
-# Install channel providers as needed
-npm install resend twilio firebase-admin onesignal-node
+# or
+pnpm add @townkrier/core
 ```
 
 ## Quick Start
 
 ```typescript
-import { Notification, MailChannel, SmsChannel } from '@townkrier/core';
+import { NotificationManager } from '@townkrier/core';
+import { createResendChannel } from '@townkrier/resend';
+import { createTermiiChannel } from '@townkrier/termii';
 
-// Define a notification
-class OrderShipped extends Notification {
-  constructor(private order: Order) {
-    super();
-  }
+// Initialize notification manager
+const manager = new NotificationManager({
+  defaultChannel: 'email',
+  enableFallback: true,
+  channels: [
+    {
+      name: 'email',
+      enabled: true,
+      priority: 1,
+      config: {
+        apiKey: process.env.RESEND_API_KEY,
+        from: 'noreply@yourdomain.com',
+      },
+    },
+    {
+      name: 'sms',
+      enabled: true,
+      priority: 2,
+      config: {
+        apiKey: process.env.TERMII_API_KEY,
+        senderId: 'YourApp',
+      },
+    },
+  ],
+});
 
-  via(notifiable: Notifiable): string[] {
-    return ['mail', 'sms', 'database'];
-  }
-
-  toMail(notifiable: Notifiable): MailMessage {
-    return new MailMessage()
-      .subject('Order Shipped!')
-      .line(`Your order #${this.order.id} has been shipped.`)
-      .action('Track Order', this.order.trackingUrl);
-  }
-
-  toSms(notifiable: Notifiable): SmsMessage {
-    return new SmsMessage()
-      .content(`Your order #${this.order.id} has shipped!`);
-  }
-}
+// Register channel factories
+manager.registerFactory('email', createResendChannel);
+manager.registerFactory('sms', createTermiiChannel);
 
 // Send notification
-await user.notify(new OrderShipped(order));
+const channel = manager.getChannel('email');
+await channel.send({
+  from: { email: 'noreply@yourdomain.com' },
+  to: { email: 'user@example.com', name: 'John Doe' },
+  subject: 'Welcome!',
+  html: '<p>Welcome to our app!</p>',
+  text: 'Welcome to our app!',
+});
 ```
 
-## Channels
+## Available Adapters
 
-- **Mail:** Resend, SendGrid, Nodemailer, custom SMTP
-- **SMS:** Twilio, Termii, custom providers
-- **Push:** Firebase (FCM), OneSignal, custom providers
-- **In-App/Database:** Store notifications in database
-- **Slack:** Send to Slack channels
-- **Custom:** Create your own channels
+- `@townkrier/resend` - Email via Resend
+- `@townkrier/termii` - SMS via Termii
+- `@townkrier/fcm` - Push notifications via Firebase Cloud Messaging
+- `@townkrier/in-app` - In-app notifications with storage interface
+
+## Architecture
+
+The package follows a clean architecture pattern similar to the payment module:
+
+```
+@townkrier/core
+├── interfaces/          # Channel interfaces and contracts
+├── types/              # Type definitions and enums
+├── core/               # Core classes (Manager, Base classes)
+├── channels/           # Base channel implementations
+├── exceptions/         # Custom exceptions
+└── utils/              # Utility functions
+
+@townkrier/adapter-name
+├── core/               # Adapter implementation
+├── types/              # Adapter-specific types
+└── interfaces/         # Adapter-specific interfaces
+```
+
+## Creating Custom Channels
+
+```typescript
+import { MailChannel, SendEmailRequest, SendEmailResponse } from '@townkrier/core';
+
+export class CustomEmailChannel extends MailChannel {
+  constructor(config: CustomConfig) {
+    super(config, 'CustomEmail');
+  }
+
+  async sendEmail(request: SendEmailRequest): Promise<SendEmailResponse> {
+    // Your implementation here
+    return {
+      success: true,
+      messageId: 'unique-id',
+      status: 'sent',
+      sentAt: new Date(),
+    };
+  }
+}
+```
 
 ## Documentation
 
-See [full documentation](../../docs/packages/townkrier/README.md).
-
-## Extraction Guide
-
-This package is designed to be extracted to a separate repository. See [PACKAGE-MIGRATION-GUIDE.md](../../docs/migration/PACKAGE-MIGRATION-GUIDE.md).
+For detailed documentation, examples, and API reference, visit the [documentation](../../docs).
 
 ## License
 

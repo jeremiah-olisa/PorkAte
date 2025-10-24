@@ -1,5 +1,3 @@
-import { NotificationChannel } from '../types';
-
 /**
  * Base configuration for notification channels
  */

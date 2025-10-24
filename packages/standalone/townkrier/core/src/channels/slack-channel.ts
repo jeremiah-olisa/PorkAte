@@ -67,13 +67,16 @@ export abstract class SlackChannel implements INotificationChannel {
     | SendInAppResponse
   > {
     // Convert to Slack format and send
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const slackRequest: SlackNotificationRequest = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       text: (notification as any).message || (notification as any).text || (notification as any).body || '',
     };
     
     const result = await this.sendSlack(slackRequest);
     
     // Convert back to standard response format
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return {
       success: result.success,
       messageId: result.ts || '',
