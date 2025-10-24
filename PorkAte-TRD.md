@@ -25,13 +25,45 @@ This TRD defines the technical implementation details for the PorkAte wallet pac
 
 ---
 
+## 2.1. ZenStack Integration
+
+PorkAte leverages ZenStack as the schema definition and data access layer, providing significant advantages:
+
+- **Enhanced Schema Definition:** ZModel syntax extends Prisma schema with:
+  - Declarative access control policies using `@@allow` and `@@deny` rules
+  - Field-level validation rules
+  - Custom attributes for domain logic
+  - Polymorphic relations support
+
+- **Built-in Authorization:** Access control policies are enforced automatically:
+  - No need for manual permission checks in application code
+  - Policies are co-located with data models for better maintainability
+  - Context-aware rules based on user authentication and roles
+  - Compile-time type safety for authorization logic
+
+- **Developer Experience:**
+  - Single source of truth for data models and access control
+  - Automatic generation of type-safe client with authorization
+  - Reduced boilerplate code for security checks
+  - Better testability with policy-aware mocks
+
+- **Compatibility:** ZenStack is fully compatible with Prisma:
+  - Generates standard Prisma schema and client
+  - Works with existing Prisma migrations
+  - Supports all Prisma-compatible databases
+  - Can be adopted incrementally in existing Prisma projects
+
+---
+
 ## 3. Technology Stack
 
 - **Language:** TypeScript (Node.js >= 18)
-- **ORM:** Prisma (PostgreSQL recommended, supports MySQL, SQLite, SQL Server, CockroachDB)
+- **Schema & ORM:** ZenStack ZModel (built on Prisma, PostgreSQL recommended, supports MySQL, SQLite, SQL Server, CockroachDB)
+  - Provides enhanced schema definition with access control policies
+  - Generates type-safe Prisma client with built-in authorization
 - **NoSQL:** Cassandra (reference), MongoDB, DynamoDB, or custom via adapter
 - **Cache:** Redis (reference), In-Memory, Memcached, or custom via adapter
-- **Event System:** RabbitMQ (reference), Kafka, SNS/SQS, Service Bus, In-Memory
+- **Event System:** RabbitMQ (reference), Kafka, SNS/SQQ, Service Bus, In-Memory
 - **Payment Gateways:** Paystack, Flutterwave, Stripe (reference implementations)
 - **Testing:** Jest (unit/integration), custom mocks for adapters
 - **Containerization:** Docker, Docker Compose, Kubernetes manifests
@@ -47,7 +79,10 @@ This TRD defines the technical implementation details for the PorkAte wallet pac
 - Environment variable support via dotenv.
 
 ### 4.2. Adapters
-- **Database Adapter:** PrismaClient, schema files, migrations.
+- **Database Adapter:** ZenStack enhanced client with Prisma, ZModel schema files, migrations.
+  - Access control policies defined directly in ZModel schema
+  - Automatic policy enforcement at data access layer
+  - Type-safe client generation with authorization built-in
 - **NoSQL Adapter:** Interface for transaction storage; Cassandra reference implementation.
 - **Cache Adapter:** Interface for caching; Redis reference implementation.
 - **Event Adapter:** Interface for event publishing/subscription; RabbitMQ reference implementation.
@@ -68,28 +103,40 @@ This TRD defines the technical implementation details for the PorkAte wallet pac
 
 ## 5. Data Models
 
+All data models are defined using ZenStack ZModel syntax, which extends Prisma schema with access control policies and additional features.
+
 - **Wallet:**
   - Fields: id (UUID), accountNumber, phoneNumber, type, status, balance, currency, kycTier, hash, timestamps
+  - Access policies: Application-level authentication, wallet ownership validation
 - **KYC Profile:**
   - Fields: id, walletId, profileType, tier, data (JSON), status, documents, timestamps
+  - Access policies: Wallet ownership, tier-based permissions
 - **Transaction:**
   - Fields: id (UUID), reference, type, sourceWalletId, destinationWalletId, amount, currency, fees, status, narration, metadata, idempotencyKey, hash, timestamps
+  - Access policies: Transaction participant validation, status-based operations
 - **Lien:**
   - Fields: id (UUID), walletId, amount, reason, status, expiry, reference, timestamps
+  - Access policies: Wallet ownership, admin authorization
 - **Ledger Entry:**
   - Fields: id, walletId, type (debit/credit), amount, previousBalance, currentBalance, transactionReference, timestamps
+  - Access policies: Read-only after creation (immutable), wallet ownership
 - **Event:**
   - Fields: id (UUID), type, timestamp, source, data, metadata
+  - Access policies: System-level access, event subscription permissions
 
 ---
 
 ## 6. Security
 
+- **Access Control:** ZenStack provides declarative access control policies defined in ZModel schema
+  - Fine-grained authorization rules at model and field level
+  - Context-aware policies based on user roles and ownership
+  - Automatic enforcement at data access layer
 - **Encryption:** AES-256-GCM for data at rest; TLS 1.3+ for data in transit.
 - **Hashing:** bcrypt/argon2 for PINs; SHA-256/SHA-512 for integrity.
 - **API Keys:** Public/Secret key pairs; rotation and expiration supported.
 - **Rate Limiting:** Configurable per API key; implemented via cache adapter.
-- **Input Validation:** All inputs validated using class-validator or custom logic.
+- **Input Validation:** All inputs validated using class-validator or custom logic; ZModel provides schema-level validation.
 - **Audit Logging:** Immutable logs; stored in append-only format.
 
 ---
@@ -140,7 +187,9 @@ This TRD defines the technical implementation details for the PorkAte wallet pac
 - **Docker:** Dockerfile and Compose for local/prod deployments.
 - **Kubernetes:** Helm charts for scalable deployments.
 - **Environment Variables:** All secrets/configs externalized; `.env.example` provided.
-- **Migrations:** Prisma migration scripts; rollback supported.
+- **Migrations:** ZenStack generates Prisma migrations from ZModel schema; rollback supported.
+  - `zenstack generate` command creates Prisma schema and client
+  - Standard Prisma migration workflow applies
 - **Monitoring:** Prometheus metrics endpoint; health checks for orchestration.
 
 ---
@@ -166,7 +215,10 @@ This TRD defines the technical implementation details for the PorkAte wallet pac
 ## 14. Diagrams & Schemas
 
 - **System Architecture Diagram:** [To be provided]
-- **Database Schema:** [Prisma schema files in repo]
+- **Database Schema:** [ZenStack ZModel schema files in repo (`schema.zmodel`)]
+  - ZModel extends Prisma schema with access control and validation
+  - Generates Prisma client with built-in authorization
+  - Policy enforcement at data layer ensures security by default
 - **Adapter Interfaces:** [TypeScript interfaces in `porkate/interfaces`]
 
 ---
