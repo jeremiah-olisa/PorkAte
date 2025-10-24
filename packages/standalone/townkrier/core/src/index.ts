@@ -1,7 +1,9 @@
-// Main exports
-export * from './core/notification';
-export * from './core/notifiable';
-export * from './core/notification-manager';
+// Core exports
+export * from './core';
+export * from './interfaces';
+export * from './types';
+export * from './utils';
+export * from './exceptions';
 
 // Channels
 export * from './channels/mail';
@@ -10,12 +12,8 @@ export * from './channels/push';
 export * from './channels/database';
 export * from './channels/slack';
 
-// Adapters/Providers
+// Adapters/Providers (placeholders - actual implementations in separate packages)
 export * from './adapters/resend';
 export * from './adapters/twilio';
 export * from './adapters/firebase';
 export * from './adapters/onesignal';
-
-// Types and Interfaces
-export * from './types';
-export * from './interfaces';
