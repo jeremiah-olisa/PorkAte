@@ -63,7 +63,7 @@ PorkAte leverages ZenStack as the schema definition and data access layer, provi
   - Generates type-safe Prisma client with built-in authorization
 - **NoSQL:** Cassandra (reference), MongoDB, DynamoDB, or custom via adapter
 - **Cache:** Redis (reference), In-Memory, Memcached, or custom via adapter
-- **Event System:** RabbitMQ (reference), Kafka, SNS/SQQ, Service Bus, In-Memory
+- **Event System:** RabbitMQ (reference), Kafka, SNS/SQS, Service Bus, In-Memory
 - **Payment Gateways:** Paystack, Flutterwave, Stripe (reference implementations)
 - **Testing:** Jest (unit/integration), custom mocks for adapters
 - **Containerization:** Docker, Docker Compose, Kubernetes manifests
