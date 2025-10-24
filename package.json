@@ -1,0 +1,74 @@
+{
+  "name": "porkate-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Provider-agnostic wallet package with standalone adapters",
+  "author": "Jeremiah Olisa",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeremiah-olisa/porkate.git"
+  },
+  "keywords": [
+    "wallet",
+    "fintech",
+    "payments",
+    "banking",
+    "monorepo",
+    "lerna",
+    "invalid8",
+    "townkrier",
+    "kolo",
+    "zenstack",
+    "paystack",
+    "stripe",
+    "flutterwave"
+  ],
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build --stream",
+    "build:core": "lerna run build --scope=@porkate/core --stream",
+    "build:invalid8": "lerna run build --scope=@invalid8/core --stream",
+    "build:eventbus": "lerna run build --scope=@eventbus/core --stream",
+    "build:townkrier": "lerna run build --scope=@townkrier/core --stream",
+    "build:kolo": "lerna run build --scope=@kolo/core --stream",
+    "build:payment": "lerna run build --scope='@porkate/payment*' --stream",
+    "dev": "lerna run dev --parallel",
+    "test": "lerna run test --stream",
+    "test:cov": "lerna run test:cov --stream",
+    "lint": "lerna run lint --stream",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "lerna clean -y && rm -rf node_modules",
+    "clean:build": "lerna run clean --stream",
+    "version": "lerna version --conventional-commits",
+    "publish": "lerna publish from-package",
+    "publish:canary": "lerna publish --canary",
+    "zenstack:generate": "lerna run zenstack:generate --scope=@porkate/core",
+    "prisma:studio": "lerna run prisma:studio --scope=@porkate/core",
+    "prisma:migrate": "lerna run prisma:migrate --scope=@porkate/core",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3",
+    "lerna": "^8.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.4",
+  "workspaces": [
+    "packages/*",
+    "packages/standalone/*",
+    "examples/*"
+  ]
+}

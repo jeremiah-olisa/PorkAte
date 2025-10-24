@@ -759,7 +759,7 @@ export * from './types';
 export * from './interfaces';
 EOF
 
-cd ../..
+cd ../../..
 
 # =============================================================================
 # PACKAGE: @eventbus/core (STANDALONE - EXTRACTION-READY)
@@ -868,7 +868,7 @@ export * from './types';
 export * from './interfaces';
 EOF
 
-cd ../..
+cd ../../..
 
 # =============================================================================
 # PACKAGE: @townkrier/core (STANDALONE - EXTRACTION-READY)
@@ -1035,7 +1035,7 @@ export * from './types';
 export * from './interfaces';
 EOF
 
-cd ../..
+cd ../../..
 
 # =============================================================================
 # PACKAGE: @kolo/core (STANDALONE - EXTRACTION-READY)
@@ -1146,7 +1146,7 @@ export * from './types';
 export * from './interfaces';
 EOF
 
-cd ../..
+cd ../../..
 
 # =============================================================================
 # PAYMENT GATEWAY PACKAGES (STANDALONE - EXTRACTION-READY)
@@ -1247,7 +1247,7 @@ export * from './interfaces';
 export * from './utils';
 EOF
 
-cd ../..
+cd ../../..
 
 # @porkate/paystack
 cd packages/standalone/paystack
@@ -1340,7 +1340,7 @@ export * from './types';
 export * from './interfaces';
 EOF
 
-cd ../..
+cd ../../..
 
 # @porkate/stripe
 cd packages/standalone/stripe
@@ -1433,7 +1433,7 @@ export * from './types';
 export * from './interfaces';
 EOF
 
-cd ../..
+cd ../../..
 
 # @porkate/flutterwave
 cd packages/standalone/flutterwave
@@ -1526,7 +1526,7 @@ export * from './types';
 export * from './interfaces';
 EOF
 
-cd ../..
+cd ../../..
 
 # =============================================================================
 # ROOT CONFIGURATION FILES

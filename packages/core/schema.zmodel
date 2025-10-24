@@ -1,0 +1,168 @@
+// ZenStack Schema - Multi-Provider Database Support
+// Generates Prisma schema based on DATABASE_PROVIDER environment variable
+
+datasource db {
+  provider = env("DATABASE_PROVIDER") // "postgresql", "mysql", "sqlite", "sqlserver", "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ============================================================================
+// WALLET MODEL
+// ============================================================================
+
+model Wallet {
+  id              String    @id @default(cuid())
+  
+  // User linkage (external auth - Clerk, Auth0, Firebase, etc.)
+  userId          String    // Links to external authentication system
+  
+  // Account details
+  accountNumber   String    @unique
+  phoneNumber     String    @unique
+  balance         Decimal   @default(0) @db.Decimal(18, 2)
+  currency        String    @default("NGN")
+  accountType     String    // INDIVIDUAL, BUSINESS
+  status          String    // ACTIVE, SUSPENDED, CLOSED
+  
+  // Security
+  pin             String    // Hashed PIN for transaction authorization (NOT for login)
+  hashValue       String    // SHA-256 hash for integrity checking
+  
+  // Relationships
+  kyc             KYC?
+  ledgers         Ledger[]
+  liens           Lien[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([phoneNumber])
+  @@index([accountNumber])
+  @@index([userId])
+  @@map("wallets")
+}
+
+// ============================================================================
+// KYC MODEL
+// ============================================================================
+
+model KYC {
+  id              String    @id @default(cuid())
+  walletId        String    @unique
+  wallet          Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  
+  profileType     String    // INDIVIDUAL, CORPORATE, GROUP
+  tier            Int       @default(1) // 1, 2, 3
+  
+  // Individual fields
+  fullName        String?
+  email           String?
+  phoneNumber     String
+  address         String?
+  bvn             String?
+  nin             String?
+  dateOfBirth     DateTime?
+  
+  // Corporate fields
+  companyName     String?
+  rcNumber        String?
+  taxId           String?
+  
+  // Group fields
+  groupName       String?
+  groupType       String?
+  
+  // Document storage (references to Kolo storage)
+  documents       Json?     // {documentType: koloStorageKey}
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@map("kyc_records")
+}
+
+// ============================================================================
+// LEDGER MODEL (Double-Entry Accounting)
+// ============================================================================
+
+model Ledger {
+  id              String    @id @default(cuid())
+  walletId        String
+  wallet          Wallet    @relation(fields: [walletId], references: [id])
+  
+  entryType       String    // DEBIT, CREDIT
+  amount          Decimal   @db.Decimal(18, 2)
+  previousBalance Decimal   @db.Decimal(18, 2)
+  currentBalance  Decimal   @db.Decimal(18, 2)
+  
+  transactionRef  String
+  narration       String
+  
+  createdAt       DateTime  @default(now())
+  
+  @@index([walletId])
+  @@index([transactionRef])
+  @@index([createdAt])
+  @@map("ledgers")
+}
+
+// ============================================================================
+// LIEN MODEL
+// ============================================================================
+
+model Lien {
+  id              String    @id @default(cuid())
+  walletId        String
+  wallet          Wallet    @relation(fields: [walletId], references: [id])
+  
+  amount          Decimal   @db.Decimal(18, 2)
+  reason          String
+  status          String    // ACTIVE, RELEASED, EXPIRED
+  expiryDate      DateTime?
+  
+  transactionRef  String?
+  
+  createdAt       DateTime  @default(now())
+  releasedAt      DateTime?
+  
+  @@index([walletId, status])
+  @@map("liens")
+}
+
+// ============================================================================
+// TRANSACTION MODEL (for MVP, will migrate to NoSQL in Phase 2)
+// ============================================================================
+
+model Transaction {
+  id                String    @id @default(cuid())
+  reference         String    @unique
+  
+  sourceWalletId    String?
+  destinationWalletId String?
+  
+  type              String    // DEBIT, CREDIT, TRANSFER
+  amount            Decimal   @db.Decimal(18, 2)
+  currency          String    @default("NGN")
+  fees              Decimal   @default(0) @db.Decimal(18, 2)
+  
+  status            String    // PENDING, SUCCESS, FAILED, REVERSED
+  narration         String
+  metadata          Json?
+  
+  idempotencyKey    String?   @unique
+  hash              String    // Transaction integrity hash
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@index([reference])
+  @@index([sourceWalletId])
+  @@index([destinationWalletId])
+  @@index([idempotencyKey])
+  @@index([createdAt])
+  @@map("transactions")
+}

@@ -1,0 +1,38 @@
+{
+  "name": "@kolo/core",
+  "version": "1.0.0-alpha.1",
+  "description": "Secure storage adapter (Kolo means piggybank in Yoruba) for documents and files",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "storage",
+    "s3",
+    "azure-blob",
+    "file-storage",
+    "kolo",
+    "document-storage"
+  ],
+  "author": "Jeremiah Olisa",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  }
+}
