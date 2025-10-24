@@ -1,0 +1,20 @@
+{
+  "name": "@porkate/payment-examples",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Examples for using @porkate/payment packages",
+  "scripts": {
+    "paystack": "ts-node src/paystack-example.ts"
+  },
+  "dependencies": {
+    "@porkate/payment": "workspace:*",
+    "@porkate/paystack": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.9.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

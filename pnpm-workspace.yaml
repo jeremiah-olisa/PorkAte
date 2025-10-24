@@ -1,9 +1,9 @@
 packages:
   # Core PorkAte packages (non-extractable)
-  - 'packages/*'
-  
-  # Standalone packages (extraction-ready - can move to separate repos)
-  - 'packages/standalone/*'
-  
-  # Examples
-  - 'examples/*'
+    - 'packages/**'
+    
+    # Standalone packages (extraction-ready - can move to separate repos)
+    - 'packages/standalone/**'
+    
+    # Examples
+    - 'examples/**'
