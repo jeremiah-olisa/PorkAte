@@ -1,31 +1,42 @@
 #!/usr/bin/env bash
 
-# PorkAte Wallet Package - Complete Monorepo Setup Script
+# PorkAte Wallet Package - Complete Monorepo Setup Script (CORRECTED)
 # Lerna + PNPM Monorepo with Standalone Extractable Packages
 # Aligned with PorkAte FRD v2.0 - October 24, 2025
 # Author: Jeremiah Olisa
 #
-# This script creates a monorepo with:
+# CORRECTED ARCHITECTURE:
 # - @porkate/core (wallet package)
 # - @porkate/nosql (internal nosql adapter)
+# - @porkate/payment (payment gateway interface - extraction-ready)
+# - @porkate/paystack (Paystack adapter - extraction-ready)
+# - @porkate/stripe (Stripe adapter - extraction-ready)
+# - @porkate/flutterwave (Flutterwave adapter - extraction-ready)
 # - @invalid8/core (standalone caching library - extraction-ready)
-# - @townkrier/core (standalone event system - extraction-ready)
-# - @kolo/core (standalone storage adapter - extraction-ready)
+# - @eventbus/core (event system for Invalid8 cache invalidation - extraction-ready)
+# - @townkrier/core (Laravel-style notification system - extraction-ready)
+# - @kolo/core (standalone storage adapter for KYC documents - extraction-ready)
 
 set -e  # Exit on error
 
-echo "🚀 PorkAte Wallet Package - Lerna Monorepo Setup"
-echo "=================================================="
+echo "🚀 PorkAte Wallet Package - Lerna Monorepo Setup (CORRECTED)"
+echo "=============================================================="
 echo "Package: PorkAte (pronounced 'Pocket')"
 echo "Version: 1.0.0-alpha"
 echo "FRD Version: 2.0"
 echo "Architecture: Lerna + PNPM Monorepo"
 echo "Database: ZenStack (Multi-Provider Support)"
+echo ""
 echo "Standalone Packages:"
-echo "  - Invalid8 (Caching - extraction-ready)"
-echo "  - TownKrier (Events - extraction-ready)"
-echo "  - Kolo (Storage - extraction-ready)"
-echo "=================================================="
+echo "  ✅ Invalid8 - Caching library (React Query-inspired)"
+echo "  ✅ EventBus - Event system for cache invalidation"
+echo "  ✅ TownKrier - Laravel-style notification system"
+echo "  ✅ Kolo - Storage adapter for documents"
+echo "  ✅ Payment Core - Payment gateway interface"
+echo "  ✅ Paystack - Paystack payment adapter"
+echo "  ✅ Stripe - Stripe payment adapter"
+echo "  ✅ Flutterwave - Flutterwave payment adapter"
+echo "=============================================================="
 echo ""
 
 # Check if Node.js is installed
@@ -50,7 +61,7 @@ echo "✅ pnpm version: $PNPM_VERSION"
 # Check if Lerna is installed globally, if not install it
 if ! command -v lerna &> /dev/null; then
     echo "⚠️  Lerna is not installed. Installing Lerna globally..."
-    npm install -g lerna
+    sudo npm install -g lerna
     echo "✅ Lerna installed successfully"
 fi
 
@@ -75,17 +86,17 @@ cat > lerna.json << 'EOF'
   "command": {
     "publish": {
       "conventionalCommits": true,
-      "message": "chore(release): publish packages",
+      "message": "chore(release): publish",
       "registry": "https://registry.npmjs.org/"
     },
     "version": {
-      "allowBranch": ["main", "develop"],
-      "message": "chore(release): version packages"
+      "conventionalCommits": true,
+      "message": "chore(release): version"
     }
   },
   "packages": [
     "packages/*",
-    "standalone-packages/*"
+    "packages/standalone/*"
   ]
 }
 EOF
@@ -98,7 +109,7 @@ packages:
   - 'packages/*'
   
   # Standalone packages (extraction-ready - can move to separate repos)
-  - 'standalone-packages/*'
+  - 'packages/standalone/*'
   
   # Examples
   - 'examples/*'
@@ -111,7 +122,7 @@ cat > package.json << 'EOF'
   "name": "porkate-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "Provider-agnostic wallet package with standalone adapters (Invalid8, TownKrier, Kolo)",
+  "description": "Provider-agnostic wallet package with standalone adapters",
   "author": "Jeremiah Olisa",
   "license": "MIT",
   "repository": {
@@ -128,15 +139,20 @@ cat > package.json << 'EOF'
     "invalid8",
     "townkrier",
     "kolo",
-    "zenstack"
+    "zenstack",
+    "paystack",
+    "stripe",
+    "flutterwave"
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build --stream",
     "build:core": "lerna run build --scope=@porkate/core --stream",
     "build:invalid8": "lerna run build --scope=@invalid8/core --stream",
+    "build:eventbus": "lerna run build --scope=@eventbus/core --stream",
     "build:townkrier": "lerna run build --scope=@townkrier/core --stream",
     "build:kolo": "lerna run build --scope=@kolo/core --stream",
+    "build:payment": "lerna run build --scope='@porkate/payment*' --stream",
     "dev": "lerna run dev --parallel",
     "test": "lerna run test --stream",
     "test:cov": "lerna run test:cov --stream",
@@ -172,7 +188,7 @@ cat > package.json << 'EOF'
   "packageManager": "pnpm@8.15.4",
   "workspaces": [
     "packages/*",
-    "standalone-packages/*",
+    "packages/standalone/*",
     "examples/*"
   ]
 }
@@ -199,32 +215,54 @@ mkdir -p packages/nosql/test
 # =============================================================================
 
 # Invalid8 - Caching Library (extraction-ready)
-mkdir -p standalone-packages/invalid8/src/{core,adapters/{memory,redis},types,interfaces,utils}
-mkdir -p standalone-packages/invalid8/test/{unit,integration}
-mkdir -p standalone-packages/invalid8/docs
+mkdir -p packages/standalone/invalid8/src/{core,adapters/{memory,redis},types,interfaces,utils}
+mkdir -p packages/standalone/invalid8/test/{unit,integration}
+mkdir -p packages/standalone/invalid8/docs
 
-# TownKrier - Event System (extraction-ready, used by Invalid8 and PorkAte)
-mkdir -p standalone-packages/townkrier/src/{core,adapters/{memory,rabbitmq,kafka},types,interfaces,utils}
-mkdir -p standalone-packages/townkrier/test/{unit,integration}
-mkdir -p standalone-packages/townkrier/docs
+# EventBus - Event System for Cache Invalidation (extraction-ready, used by Invalid8)
+mkdir -p packages/standalone/eventbus/src/{core,adapters/{memory,rabbitmq,kafka},types,interfaces,utils}
+mkdir -p packages/standalone/eventbus/test/{unit,integration}
+mkdir -p packages/standalone/eventbus/docs
+
+# TownKrier - Laravel-style Notification System (extraction-ready)
+mkdir -p packages/standalone/townkrier/src/{core,channels/{mail,sms,push,database,slack},adapters/{resend,twilio,firebase,onesignal},types,interfaces,utils}
+mkdir -p packages/standalone/townkrier/test/{unit,integration}
+mkdir -p packages/standalone/townkrier/docs
 
 # Kolo - Storage Adapter (extraction-ready)
-mkdir -p standalone-packages/kolo/src/{core,adapters/{local,s3,azure},types,interfaces,utils}
-mkdir -p standalone-packages/kolo/test/{unit,integration}
-mkdir -p standalone-packages/kolo/docs
+mkdir -p packages/standalone/kolo/src/{core,adapters/{local,s3,azure},types,interfaces,utils}
+mkdir -p packages/standalone/kolo/test/{unit,integration}
+mkdir -p packages/standalone/kolo/docs
+
+# Payment Gateway Packages (extraction-ready)
+mkdir -p packages/standalone/payment/src/{core,types,interfaces,utils}
+mkdir -p packages/standalone/payment/test/{unit,integration}
+mkdir -p packages/standalone/payment/docs
+
+mkdir -p packages/standalone/paystack/src/{core,types,interfaces,utils}
+mkdir -p packages/standalone/paystack/test/{unit,integration}
+mkdir -p packages/standalone/paystack/docs
+
+mkdir -p packages/standalone/stripe/src/{core,types,interfaces,utils}
+mkdir -p packages/standalone/stripe/test/{unit,integration}
+mkdir -p packages/standalone/stripe/docs
+
+mkdir -p packages/standalone/flutterwave/src/{core,types,interfaces,utils}
+mkdir -p packages/standalone/flutterwave/test/{unit,integration}
+mkdir -p packages/standalone/flutterwave/docs
 
 # =============================================================================
 # EXAMPLES
 # =============================================================================
 
 mkdir -p examples/{porkate-basic,porkate-nestjs,porkate-express}/src
-mkdir -p examples/{invalid8,townkrier,kolo}/src
+mkdir -p examples/{invalid8,townkrier,kolo,payment}/src
 
 # =============================================================================
 # DOCUMENTATION
 # =============================================================================
 
-mkdir -p docs/{product,packages/{invalid8,townkrier,kolo},migration,architecture,guides}
+mkdir -p docs/{product,packages/{invalid8,eventbus,townkrier,kolo,payment},migration,architecture,guides}
 
 # =============================================================================
 # SCRIPTS AND TOOLS
@@ -262,17 +300,15 @@ cat > package.json << 'EOF'
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
     "wallet",
     "fintech",
-    "payments",
     "banking",
-    "zenstack",
-    "prisma",
+    "payments",
+    "porkate",
     "multi-database"
   ],
   "author": "Jeremiah Olisa",
@@ -283,35 +319,28 @@ cat > package.json << 'EOF'
   "peerDependencies": {
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
-    "@prisma/client": "^5.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },
   "dependencies": {
-    "@nestjs/config": "^3.1.1",
+    "@prisma/client": "^5.7.0",
+    "zenstack": "^2.0.0",
     "@invalid8/core": "workspace:*",
+    "@eventbus/core": "workspace:*",
     "@townkrier/core": "workspace:*",
     "@kolo/core": "workspace:*",
-    "libphonenumber-js": "^1.10.44",
-    "uuid": "^9.0.1",
+    "@porkate/payment": "workspace:*",
     "class-validator": "^0.14.0",
     "class-transformer": "^0.5.1",
     "bcrypt": "^5.1.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "^10.0.0",
-    "@nestjs/testing": "^10.0.0",
-    "@prisma/client": "^5.7.0",
-    "@types/jest": "^29.5.5",
-    "@types/node": "^20.8.7",
-    "@types/bcrypt": "^5.0.2",
-    "@types/uuid": "^9.0.6",
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
     "jest": "^29.7.0",
-    "prisma": "^5.7.0",
-    "zenstack": "^2.0.0",
     "ts-jest": "^29.1.1",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0"
+    "typescript": "^5.3.3",
+    "prisma": "^5.7.0"
   }
 }
 EOF
@@ -322,13 +351,7 @@ cat > tsconfig.json << 'EOF'
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
-    "paths": {
-      "@/*": ["src/*"],
-      "@modules/*": ["src/modules/*"],
-      "@providers/*": ["src/providers/*"],
-      "@common/*": ["src/common/*"]
-    }
+    "rootDir": "./src"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
@@ -350,9 +373,9 @@ module.exports = {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
     '^@modules/(.*)$': '<rootDir>/modules/$1',
     '^@providers/(.*)$': '<rootDir>/providers/$1',
+    '^@config/(.*)$': '<rootDir>/config/$1',
     '^@common/(.*)$': '<rootDir>/common/$1',
   },
 };
@@ -590,182 +613,6 @@ export * from './common/guards';
 export * from './config/wallet.config';
 EOF
 
-# Create main module file
-cat > src/wallet-sdk.module.ts << 'EOF'
-import { DynamicModule, Module, Global } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { WalletModule } from './modules/wallet/wallet.module';
-import { TransactionModule } from './modules/transaction/transaction.module';
-import { KYCModule } from './modules/kyc/kyc.module';
-import { LienModule } from './modules/lien/lien.module';
-import { LedgerModule } from './modules/ledger/ledger.module';
-import { PrismaModule } from './providers/database/prisma.module';
-import { WALLET_CONFIG } from './constants';
-import { WalletModuleOptions } from './types';
-
-@Global()
-@Module({})
-export class WalletSdkModule {
-  static forRoot(options: WalletModuleOptions): DynamicModule {
-    return {
-      module: WalletSdkModule,
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-        }),
-        PrismaModule.forRoot(options.database),
-        WalletModule,
-        TransactionModule,
-        KYCModule,
-        LienModule,
-        LedgerModule,
-      ],
-      providers: [
-        {
-          provide: WALLET_CONFIG,
-          useValue: options,
-        },
-      ],
-      exports: [
-        WALLET_CONFIG,
-        PrismaModule,
-        WalletModule,
-        TransactionModule,
-        KYCModule,
-        LienModule,
-        LedgerModule,
-      ],
-    };
-  }
-
-  static forRootAsync(options: any): DynamicModule {
-    return {
-      module: WalletSdkModule,
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-        }),
-        ...(options.imports || []),
-      ],
-      providers: [
-        {
-          provide: WALLET_CONFIG,
-          useFactory: options.useFactory,
-          inject: options.inject || [],
-        },
-      ],
-    };
-  }
-}
-EOF
-
-# Create constants
-cat > src/constants/index.ts << 'EOF'
-export const WALLET_CONFIG = 'WALLET_CONFIG';
-
-export enum WalletStatus {
-  ACTIVE = 'ACTIVE',
-  SUSPENDED = 'SUSPENDED',
-  CLOSED = 'CLOSED',
-}
-
-export enum AccountType {
-  INDIVIDUAL = 'INDIVIDUAL',
-  BUSINESS = 'BUSINESS',
-}
-
-export enum TransactionStatus {
-  PENDING = 'PENDING',
-  SUCCESS = 'SUCCESS',
-  FAILED = 'FAILED',
-  REVERSED = 'REVERSED',
-}
-
-export enum LedgerEntryType {
-  DEBIT = 'DEBIT',
-  CREDIT = 'CREDIT',
-}
-
-export enum KYCProfileType {
-  INDIVIDUAL = 'INDIVIDUAL',
-  CORPORATE = 'CORPORATE',
-  GROUP = 'GROUP',
-}
-
-export enum KYCTier {
-  TIER_1 = 1,
-  TIER_2 = 2,
-  TIER_3 = 3,
-}
-
-export enum LienStatus {
-  ACTIVE = 'ACTIVE',
-  RELEASED = 'RELEASED',
-  EXPIRED = 'EXPIRED',
-}
-EOF
-
-# Create types
-cat > src/types/index.ts << 'EOF'
-export interface WalletModuleOptions {
-  database: DatabaseConfig;
-  nosql?: NoSQLConfig;
-  security: SecurityConfig;
-  transaction: TransactionConfig;
-  kyc: KYCConfig;
-  features?: FeatureFlags;
-}
-
-export interface DatabaseConfig {
-  provider: 'postgresql' | 'mysql' | 'sqlite' | 'sqlserver' | 'cockroachdb';
-  url: string;
-}
-
-export interface NoSQLConfig {
-  provider: 'cassandra' | 'mongodb';
-  contactPoints?: string[];
-  connectionString?: string;
-  keyspace?: string;
-}
-
-export interface SecurityConfig {
-  enableHashValidation: boolean;
-  hashAlgorithm: 'sha256' | 'sha512';
-  pinHashRounds: number;
-}
-
-export interface TransactionConfig {
-  defaultStrategy: 'individual' | 'business';
-  enableIdempotency: boolean;
-  idempotencyWindow: number;
-}
-
-export interface KYCConfig {
-  tierConfig: TierConfiguration;
-  profiles: ('individual' | 'corporate' | 'group')[];
-}
-
-export interface TierConfiguration {
-  tier1: TierConfig;
-  tier2: TierConfig;
-  tier3: TierConfig;
-}
-
-export interface TierConfig {
-  name: string;
-  maxBalance: number;
-  dailyLimit: number;
-  singleTransactionLimit: number;
-  requiredDocuments: string[];
-}
-
-export interface FeatureFlags {
-  multiCurrency?: boolean;
-  qrCodeTransfer?: boolean;
-  phoneTransfer?: boolean;
-}
-EOF
-
 # Create README for core package
 cat > README.md << 'EOF'
 # @porkate/core
@@ -780,39 +627,17 @@ Core wallet operations package with multi-provider database support via ZenStack
 - 🔄 Transaction Management
 - 🔒 Lien Management
 - 🗄️ Multi-Database Support (PostgreSQL, MySQL, SQLite, SQL Server, CockroachDB)
+- 💳 Payment Gateway Integration (Paystack, Stripe, Flutterwave)
+- 📧 Notification System (TownKrier)
+- 📦 Document Storage (Kolo)
+- ⚡ Caching (Invalid8)
 
 ## Installation
 
 ```bash
-npm install @porkate/core @invalid8/core @townkrier/core @kolo/core
-```
-
-## Quick Start
-
-```typescript
-import { WalletSdkModule } from '@porkate/core';
-
-// In your NestJS module
-WalletSdkModule.forRoot({
-  database: {
-    provider: process.env.DATABASE_PROVIDER as any,
-    url: process.env.DATABASE_URL,
-  },
-  security: {
-    enableHashValidation: true,
-    hashAlgorithm: 'sha256',
-    pinHashRounds: 10,
-  },
-  transaction: {
-    defaultStrategy: 'individual',
-    enableIdempotency: true,
-    idempotencyWindow: 24,
-  },
-  kyc: {
-    profiles: ['individual'],
-    tierConfig: TIER_CONFIG,
-  },
-});
+npm install @porkate/core @invalid8/core @eventbus/core @townkrier/core @kolo/core @porkate/payment
+# Install payment providers as needed
+npm install @porkate/paystack @porkate/stripe @porkate/flutterwave
 ```
 
 ## Documentation
@@ -832,7 +657,7 @@ cd ../..
 
 echo ""
 echo "📦 Setting up @invalid8/core package (EXTRACTION-READY)..."
-cd standalone-packages/invalid8
+cd packages/standalone/invalid8
 
 cat > package.json << 'EOF'
 {
@@ -847,15 +672,13 @@ cat > package.json << 'EOF'
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" --fix",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
     "cache",
     "caching",
-    "query",
     "react-query",
     "cqrs",
     "distributed-cache",
@@ -867,11 +690,11 @@ cat > package.json << 'EOF'
     "access": "public"
   },
   "dependencies": {
-    "@townkrier/core": "workspace:*"
+    "@eventbus/core": "workspace:*"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.5",
-    "@types/node": "^20.8.7",
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.3.3"
@@ -901,7 +724,7 @@ React Query-inspired caching library for JavaScript/TypeScript applications.
 ## Features
 
 - 🚀 React Query-like Developer Experience
-- 🌐 Distributed cache synchronization
+- 🌐 Distributed cache synchronization via EventBus
 - ⚡ High performance with minimal overhead
 - 🛡️ Resilient design with circuit breakers
 - 📊 Comprehensive observability
@@ -910,7 +733,7 @@ React Query-inspired caching library for JavaScript/TypeScript applications.
 ## Installation
 
 ```bash
-npm install @invalid8/core @townkrier/core
+npm install @invalid8/core @eventbus/core
 ```
 
 ## Documentation
@@ -939,18 +762,18 @@ EOF
 cd ../..
 
 # =============================================================================
-# PACKAGE: @townkrier/core (STANDALONE - EXTRACTION-READY)
+# PACKAGE: @eventbus/core (STANDALONE - EXTRACTION-READY)
 # =============================================================================
 
 echo ""
-echo "📦 Setting up @townkrier/core package (EXTRACTION-READY)..."
-cd standalone-packages/townkrier
+echo "📦 Setting up @eventbus/core package (EXTRACTION-READY)..."
+cd packages/standalone/eventbus
 
 cat > package.json << 'EOF'
 {
-  "name": "@townkrier/core",
+  "name": "@eventbus/core",
   "version": "1.0.0-alpha.1",
-  "description": "Event system for distributed applications with multiple adapter support",
+  "description": "Event bus system for distributed cache invalidation and application events",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -959,19 +782,17 @@ cat > package.json << 'EOF'
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" --fix",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "events",
     "event-bus",
-    "messaging",
-    "rabbitmq",
-    "kafka",
-    "distributed-systems",
-    "townkrier"
+    "events",
+    "distributed",
+    "pub-sub",
+    "cache-invalidation",
+    "eventbus"
   ],
   "author": "Jeremiah Olisa",
   "license": "MIT",
@@ -980,8 +801,119 @@ cat > package.json << 'EOF'
   },
   "dependencies": {},
   "devDependencies": {
-    "@types/jest": "^29.5.5",
-    "@types/node": "^20.8.7",
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  }
+}
+EOF
+
+cat > tsconfig.json << 'EOF'
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}
+EOF
+
+cat > README.md << 'EOF'
+# EventBus
+
+Event bus system for distributed applications, cache invalidation, and pub/sub messaging.
+
+**Status:** ✅ Extraction-Ready (Can be moved to separate repository)
+
+## Features
+
+- 🎯 Multiple adapter support (RabbitMQ, Kafka, Memory)
+- 🌐 Distributed event propagation
+- 🔄 Event replay mechanisms
+- 📊 Event observability
+- 🛡️ Resilient delivery
+- ⚡ Cache invalidation support for Invalid8
+
+## Installation
+
+```bash
+npm install @eventbus/core
+```
+
+## Documentation
+
+See [full documentation](../../docs/packages/eventbus/README.md).
+
+## Extraction Guide
+
+This package is designed to be extracted to a separate repository. See [PACKAGE-MIGRATION-GUIDE.md](../../docs/migration/PACKAGE-MIGRATION-GUIDE.md).
+
+## License
+
+MIT
+EOF
+
+cat > src/index.ts << 'EOF'
+// Main exports
+export * from './core/event-bus';
+export * from './core/event-emitter';
+export * from './adapters/memory';
+export * from './adapters/rabbitmq';
+export * from './adapters/kafka';
+export * from './types';
+export * from './interfaces';
+EOF
+
+cd ../..
+
+# =============================================================================
+# PACKAGE: @townkrier/core (STANDALONE - EXTRACTION-READY)
+# =============================================================================
+
+echo ""
+echo "📦 Setting up @townkrier/core package (EXTRACTION-READY - Laravel-style Notifications)..."
+cd packages/standalone/townkrier
+
+cat > package.json << 'EOF'
+{
+  "name": "@townkrier/core",
+  "version": "1.0.0-alpha.1",
+  "description": "Laravel-style notification system for Node.js with multiple channels and providers",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "notifications",
+    "laravel-notifications",
+    "email",
+    "sms",
+    "push-notifications",
+    "in-app-notifications",
+    "townkrier",
+    "multi-channel"
+  ],
+  "author": "Jeremiah Olisa",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.3.3"
@@ -1004,23 +936,67 @@ EOF
 cat > README.md << 'EOF'
 # TownKrier
 
-Event system for distributed applications.
+Laravel-style notification system for Node.js - send notifications across multiple channels with a unified API.
 
 **Status:** ✅ Extraction-Ready (Can be moved to separate repository)
 
 ## Features
 
-- 🎯 Multiple adapter support (RabbitMQ, Kafka, Memory)
-- 🌐 Distributed event propagation
-- 🔄 Event replay mechanisms
-- 📊 Event observability
-- 🛡️ Resilient delivery
+- 📧 **Multi-Channel Support:** Email, SMS, Push, In-App, Slack, Database
+- 🎯 **Provider Agnostic:** Works with Resend, Twilio, Firebase, OneSignal, and more
+- 🚀 **Laravel-inspired API:** Familiar and elegant notification classes
+- ⚡ **Queue Support:** Async notification delivery
+- 🛡️ **Type-Safe:** Full TypeScript support
+- 🔌 **Framework Agnostic:** Works with Express, NestJS, or standalone
 
 ## Installation
 
 ```bash
 npm install @townkrier/core
+# Install channel providers as needed
+npm install resend twilio firebase-admin onesignal-node
 ```
+
+## Quick Start
+
+```typescript
+import { Notification, MailChannel, SmsChannel } from '@townkrier/core';
+
+// Define a notification
+class OrderShipped extends Notification {
+  constructor(private order: Order) {
+    super();
+  }
+
+  via(notifiable: Notifiable): string[] {
+    return ['mail', 'sms', 'database'];
+  }
+
+  toMail(notifiable: Notifiable): MailMessage {
+    return new MailMessage()
+      .subject('Order Shipped!')
+      .line(`Your order #${this.order.id} has been shipped.`)
+      .action('Track Order', this.order.trackingUrl);
+  }
+
+  toSms(notifiable: Notifiable): SmsMessage {
+    return new SmsMessage()
+      .content(`Your order #${this.order.id} has shipped!`);
+  }
+}
+
+// Send notification
+await user.notify(new OrderShipped(order));
+```
+
+## Channels
+
+- **Mail:** Resend, SendGrid, Nodemailer, custom SMTP
+- **SMS:** Twilio, Termii, custom providers
+- **Push:** Firebase (FCM), OneSignal, custom providers
+- **In-App/Database:** Store notifications in database
+- **Slack:** Send to Slack channels
+- **Custom:** Create your own channels
 
 ## Documentation
 
@@ -1037,11 +1013,24 @@ EOF
 
 cat > src/index.ts << 'EOF'
 // Main exports
-export * from './core/event-bus';
-export * from './core/townkrier';
-export * from './adapters/memory';
-export * from './adapters/rabbitmq';
-export * from './adapters/kafka';
+export * from './core/notification';
+export * from './core/notifiable';
+export * from './core/notification-manager';
+
+// Channels
+export * from './channels/mail';
+export * from './channels/sms';
+export * from './channels/push';
+export * from './channels/database';
+export * from './channels/slack';
+
+// Adapters/Providers
+export * from './adapters/resend';
+export * from './adapters/twilio';
+export * from './adapters/firebase';
+export * from './adapters/onesignal';
+
+// Types and Interfaces
 export * from './types';
 export * from './interfaces';
 EOF
@@ -1054,7 +1043,7 @@ cd ../..
 
 echo ""
 echo "📦 Setting up @kolo/core package (EXTRACTION-READY)..."
-cd standalone-packages/kolo
+cd packages/standalone/kolo
 
 cat > package.json << 'EOF'
 {
@@ -1069,8 +1058,7 @@ cat > package.json << 'EOF'
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" --fix",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
@@ -1079,8 +1067,8 @@ cat > package.json << 'EOF'
     "s3",
     "azure-blob",
     "file-storage",
-    "document-storage",
-    "kolo"
+    "kolo",
+    "document-storage"
   ],
   "author": "Jeremiah Olisa",
   "license": "MIT",
@@ -1089,8 +1077,8 @@ cat > package.json << 'EOF'
   },
   "dependencies": {},
   "devDependencies": {
-    "@types/jest": "^29.5.5",
-    "@types/node": "^20.8.7",
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.3.3"
@@ -1124,11 +1112,14 @@ Secure storage adapter for documents and files (Kolo means "piggybank" or "secur
 - ⏱️ Time-limited access URLs
 - 📊 Storage metrics
 - 🛡️ Secure file handling
+- 📄 Perfect for KYC documents
 
 ## Installation
 
 ```bash
 npm install @kolo/core
+# Install storage providers as needed
+npm install @aws-sdk/client-s3 @azure/storage-blob
 ```
 
 ## Documentation
@@ -1158,6 +1149,386 @@ EOF
 cd ../..
 
 # =============================================================================
+# PAYMENT GATEWAY PACKAGES (STANDALONE - EXTRACTION-READY)
+# =============================================================================
+
+echo ""
+echo "📦 Setting up Payment Gateway packages (EXTRACTION-READY)..."
+
+# @porkate/payment (Interface/Core)
+cd packages/standalone/payment
+
+cat > package.json << 'EOF'
+{
+  "name": "@porkate/payment",
+  "version": "1.0.0-alpha.1",
+  "description": "Payment gateway interface for PorkAte wallet package",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "payment",
+    "payment-gateway",
+    "porkate",
+    "wallet"
+  ],
+  "author": "Jeremiah Olisa",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  }
+}
+EOF
+
+cat > tsconfig.json << 'EOF'
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}
+EOF
+
+cat > README.md << 'EOF'
+# @porkate/payment
+
+Payment gateway interface for PorkAte wallet package.
+
+**Status:** ✅ Extraction-Ready (Can be moved to separate repository)
+
+## Description
+
+This package provides the core interfaces and types for payment gateway integration with PorkAte wallets.
+
+## Implementations
+
+- [@porkate/paystack](../paystack) - Paystack payment gateway
+- [@porkate/stripe](../stripe) - Stripe payment gateway
+- [@porkate/flutterwave](../flutterwave) - Flutterwave payment gateway
+
+## Installation
+
+```bash
+npm install @porkate/payment
+# Install provider implementations
+npm install @porkate/paystack @porkate/stripe @porkate/flutterwave
+```
+
+## License
+
+MIT
+EOF
+
+cat > src/index.ts << 'EOF'
+// Payment Gateway Interface
+export * from './core/payment-gateway.interface';
+export * from './types';
+export * from './interfaces';
+export * from './utils';
+EOF
+
+cd ../..
+
+# @porkate/paystack
+cd packages/standalone/paystack
+
+cat > package.json << 'EOF'
+{
+  "name": "@porkate/paystack",
+  "version": "1.0.0-alpha.1",
+  "description": "Paystack payment gateway adapter for PorkAte",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "paystack",
+    "payment",
+    "porkate",
+    "wallet",
+    "nigeria"
+  ],
+  "author": "Jeremiah Olisa",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@porkate/payment": "workspace:*",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  }
+}
+EOF
+
+cat > tsconfig.json << 'EOF'
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}
+EOF
+
+cat > README.md << 'EOF'
+# @porkate/paystack
+
+Paystack payment gateway adapter for PorkAte wallet package.
+
+**Status:** ✅ Extraction-Ready (Can be moved to separate repository)
+
+## Features
+
+- 💳 Initialize payments
+- ✅ Verify transactions
+- 💰 Transfer to bank accounts
+- 🔄 Webhook handling
+- 🇳🇬 Optimized for Nigerian market
+
+## Installation
+
+```bash
+npm install @porkate/paystack @porkate/payment
+```
+
+## License
+
+MIT
+EOF
+
+cat > src/index.ts << 'EOF'
+// Paystack Gateway Implementation
+export * from './core/paystack-gateway';
+export * from './types';
+export * from './interfaces';
+EOF
+
+cd ../..
+
+# @porkate/stripe
+cd packages/standalone/stripe
+
+cat > package.json << 'EOF'
+{
+  "name": "@porkate/stripe",
+  "version": "1.0.0-alpha.1",
+  "description": "Stripe payment gateway adapter for PorkAte",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "stripe",
+    "payment",
+    "porkate",
+    "wallet",
+    "international"
+  ],
+  "author": "Jeremiah Olisa",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@porkate/payment": "workspace:*",
+    "stripe": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  }
+}
+EOF
+
+cat > tsconfig.json << 'EOF'
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}
+EOF
+
+cat > README.md << 'EOF'
+# @porkate/stripe
+
+Stripe payment gateway adapter for PorkAte wallet package.
+
+**Status:** ✅ Extraction-Ready (Can be moved to separate repository)
+
+## Features
+
+- 💳 Payment intents
+- ✅ Transaction verification
+- 💰 Payouts
+- 🔄 Webhook handling
+- 🌍 International support
+
+## Installation
+
+```bash
+npm install @porkate/stripe @porkate/payment
+```
+
+## License
+
+MIT
+EOF
+
+cat > src/index.ts << 'EOF'
+// Stripe Gateway Implementation
+export * from './core/stripe-gateway';
+export * from './types';
+export * from './interfaces';
+EOF
+
+cd ../..
+
+# @porkate/flutterwave
+cd packages/standalone/flutterwave
+
+cat > package.json << 'EOF'
+{
+  "name": "@porkate/flutterwave",
+  "version": "1.0.0-alpha.1",
+  "description": "Flutterwave payment gateway adapter for PorkAte",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "flutterwave",
+    "payment",
+    "porkate",
+    "wallet",
+    "africa"
+  ],
+  "author": "Jeremiah Olisa",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@porkate/payment": "workspace:*",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  }
+}
+EOF
+
+cat > tsconfig.json << 'EOF'
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}
+EOF
+
+cat > README.md << 'EOF'
+# @porkate/flutterwave
+
+Flutterwave payment gateway adapter for PorkAte wallet package.
+
+**Status:** ✅ Extraction-Ready (Can be moved to separate repository)
+
+## Features
+
+- 💳 Initialize payments
+- ✅ Verify transactions
+- 💰 Transfers and payouts
+- 🔄 Webhook handling
+- 🌍 Pan-African support
+
+## Installation
+
+```bash
+npm install @porkate/flutterwave @porkate/payment
+```
+
+## License
+
+MIT
+EOF
+
+cat > src/index.ts << 'EOF'
+// Flutterwave Gateway Implementation
+export * from './core/flutterwave-gateway';
+export * from './types';
+export * from './interfaces';
+EOF
+
+cd ../..
+
+# =============================================================================
 # ROOT CONFIGURATION FILES
 # =============================================================================
 
@@ -1168,23 +1539,24 @@ echo "📝 Creating root configuration files..."
 cat > tsconfig.base.json << 'EOF'
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
     "target": "ES2021",
+    "module": "commonjs",
+    "lib": ["ES2021"],
+    "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": true,
+    "strict": true,
     "noImplicitAny": true,
-    "strictBindCallApply": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }
 EOF
@@ -1278,7 +1650,7 @@ EOF
 
 # Root README
 cat > README.md << 'EOF'
-# PorkAte Monorepo
+# PorkAte Monorepo (CORRECTED)
 
 Enterprise-grade wallet package with standalone adapter libraries.
 
@@ -1289,9 +1661,34 @@ Enterprise-grade wallet package with standalone adapter libraries.
 - **[@porkate/nosql](packages/nosql)** - NoSQL adapters (internal)
 
 ### Standalone Packages (Extraction-Ready)
-- **[@invalid8/core](standalone-packages/invalid8)** - Caching library ✅
-- **[@townkrier/core](standalone-packages/townkrier)** - Event system ✅
-- **[@kolo/core](standalone-packages/kolo)** - Storage adapter ✅
+- **[@invalid8/core](packages/standalone/invalid8)** - React Query-inspired caching library ✅
+- **[@eventbus/core](packages/standalone/eventbus)** - Event system for cache invalidation ✅
+- **[@townkrier/core](packages/standalone/townkrier)** - Laravel-style notification system ✅
+- **[@kolo/core](packages/standalone/kolo)** - Storage adapter for documents ✅
+- **[@porkate/payment](packages/standalone/payment)** - Payment gateway interface ✅
+- **[@porkate/paystack](packages/standalone/paystack)** - Paystack adapter ✅
+- **[@porkate/stripe](packages/standalone/stripe)** - Stripe adapter ✅
+- **[@porkate/flutterwave](packages/standalone/flutterwave)** - Flutterwave adapter ✅
+
+## Architecture
+
+### Package Dependencies
+```
+@porkate/core
+  ├── @invalid8/core (caching)
+  │   └── @eventbus/core (cache invalidation events)
+  ├── @townkrier/core (notifications: email, SMS, push)
+  ├── @kolo/core (document storage: KYC docs)
+  └── @porkate/payment (payment gateway interface)
+      ├── @porkate/paystack
+      ├── @porkate/stripe
+      └── @porkate/flutterwave
+```
+
+### Key Differences from Previous Version
+- **TownKrier** is now a **notification system** (like Laravel Notifications), NOT an event bus
+- **EventBus** is a new package for cache invalidation and internal events
+- **Payment adapters** are now separate packages (@porkate/paystack, @porkate/stripe, @porkate/flutterwave)
 
 ## Quick Start
 
@@ -1319,6 +1716,7 @@ Standalone packages can be extracted to separate repositories. See [PACKAGE-MIGR
 - [PorkAte FRD](docs/product/PorkAte-FRD.md)
 - [PorkAte TRD](docs/product/PorkAte-TRD.md)
 - [Development TODO](docs/product/PorkAte-TODO.md)
+- [TownKrier FRD](.docs/product/townkrier/TownKrier-FRD.md)
 
 ## License
 
@@ -1342,14 +1740,19 @@ echo "✅ Dependencies installed successfully!"
 echo ""
 echo "🎉 Setup Complete!"
 echo ""
-echo "📁 Monorepo Structure:"
+echo "📁 Monorepo Structure (CORRECTED):"
 echo "  packages/"
 echo "    ├── core/          (@porkate/core)"
-echo "    └── nosql/         (@porkate/nosql)"
-echo "  standalone-packages/"
-echo "    ├── invalid8/      (@invalid8/core) ✅ Extraction-ready"
-echo "    ├── townkrier/     (@townkrier/core) ✅ Extraction-ready"
-echo "    └── kolo/          (@kolo/core) ✅ Extraction-ready"
+echo "    ├── nosql/         (@porkate/nosql)"
+echo "    └── standalone/"
+echo "        ├── invalid8/      (@invalid8/core) ✅ Extraction-ready - Caching"
+echo "        ├── eventbus/      (@eventbus/core) ✅ Extraction-ready - Events"
+echo "        ├── townkrier/     (@townkrier/core) ✅ Extraction-ready - Notifications"
+echo "        ├── kolo/          (@kolo/core) ✅ Extraction-ready - Storage"
+echo "        ├── payment/       (@porkate/payment) ✅ Extraction-ready - Payment Interface"
+echo "        ├── paystack/      (@porkate/paystack) ✅ Extraction-ready - Paystack"
+echo "        ├── stripe/        (@porkate/stripe) ✅ Extraction-ready - Stripe"
+echo "        └── flutterwave/   (@porkate/flutterwave) ✅ Extraction-ready - Flutterwave"
 echo ""
 echo "Next steps:"
 echo "  1. cd packages/core && cp .env.example .env"
@@ -1362,6 +1765,8 @@ echo "Useful commands:"
 echo "  pnpm build                  - Build all packages"
 echo "  pnpm build:core             - Build @porkate/core only"
 echo "  pnpm build:invalid8         - Build @invalid8/core only"
+echo "  pnpm build:townkrier        - Build @townkrier/core only"
+echo "  pnpm build:payment          - Build all payment packages"
 echo "  pnpm zenstack:generate      - Generate Prisma schema from ZenStack"
 echo "  pnpm prisma:studio          - Open Prisma Studio"
 echo "  pnpm test                   - Run all tests"
@@ -1373,6 +1778,4 @@ echo "  - mysql"
 echo "  - sqlite"
 echo "  - sqlserver"
 echo "  - cockroachdb"
-echo ""
-echo "Change provider by setting DATABASE_PROVIDER environment variable!"
 echo ""
