@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Common types for payment gateway operations
  */
@@ -13,11 +14,13 @@ export enum PaymentStatus {
 export enum PaymentChannel {
   CARD = 'card',
   BANK = 'bank',
-  BANK_TRANSFER = 'bank_transfer',
+  APPLE_PAY = 'apple_pay',
   USSD = 'ussd',
   QR = 'qr',
   MOBILE_MONEY = 'mobile_money',
+  BANK_TRANSFER = 'bank_transfer',
   EFT = 'eft',
+  PAYATTITUDE = 'payattitude',
 }
 
 export enum Currency {
@@ -28,6 +31,7 @@ export enum Currency {
   KES = 'KES',
   EUR = 'EUR',
   GBP = 'GBP',
+  XOF = 'XOF',
 }
 
 export interface Money {

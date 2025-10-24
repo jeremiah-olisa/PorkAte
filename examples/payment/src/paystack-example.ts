@@ -39,11 +39,7 @@ async function initiatePaymentExample() {
     },
     reference: generateReference('ORD'), // Optional: generates automatically if not provided
     callbackUrl: 'https://yourapp.com/payment/callback',
-    channels: [
-      PaymentChannel.CARD,
-      PaymentChannel.BANK_TRANSFER,
-      PaymentChannel.USSD,
-    ],
+    channels: [PaymentChannel.CARD, PaymentChannel.BANK_TRANSFER, PaymentChannel.USSD],
     metadata: {
       order_id: 'ORD123456',
       cart_id: 'CART789012',
@@ -58,7 +54,7 @@ async function initiatePaymentExample() {
     console.log('Authorization URL:', payment.authorizationUrl);
     console.log('Access Code:', payment.accessCode);
     console.log('Status:', payment.status);
-    
+
     // Redirect user to payment.authorizationUrl
     return payment.reference;
   } else {
@@ -177,7 +173,7 @@ async function completePaymentFlow() {
 
   // Step 1: Initiate payment
   const reference = await initiatePaymentExample();
-  
+
   if (!reference) {
     console.log('Payment flow stopped due to initialization failure');
     return;

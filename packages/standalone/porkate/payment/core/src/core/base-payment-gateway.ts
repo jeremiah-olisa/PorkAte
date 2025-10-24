@@ -1,6 +1,18 @@
 import { IPaymentGateway } from '../interfaces/payment-gateway.interface';
 import { PaymentGatewayConfig } from '../interfaces/payment-config.interface';
 import { PaymentConfigurationException } from '../exceptions';
+import {
+  InitiatePaymentRequest,
+  InitiatePaymentResponse,
+  VerifyPaymentRequest,
+  VerifyPaymentResponse,
+  GetPaymentRequest,
+  GetPaymentResponse,
+  RefundPaymentRequest,
+  RefundPaymentResponse,
+  CancelPaymentRequest,
+  CancelPaymentResponse,
+} from '../interfaces';
 
 /**
  * Abstract base class for payment gateway implementations
@@ -21,10 +33,9 @@ export abstract class BasePaymentGateway implements IPaymentGateway {
    */
   protected validateConfig(): void {
     if (!this.config.secretKey) {
-      throw new PaymentConfigurationException(
-        `${this.gatewayName}: Secret key is required`,
-        { gatewayName: this.gatewayName },
-      );
+      throw new PaymentConfigurationException(`${this.gatewayName}: Secret key is required`, {
+        gatewayName: this.gatewayName,
+      });
     }
   }
 
@@ -42,10 +53,10 @@ export abstract class BasePaymentGateway implements IPaymentGateway {
     return !!this.config.secretKey;
   }
 
-  // Abstract methods to be implemented by concrete classes
-  abstract initiatePayment(request: any): Promise<any>;
-  abstract verifyPayment(request: any): Promise<any>;
-  abstract getPayment(request: any): Promise<any>;
-  abstract refundPayment(request: any): Promise<any>;
-  abstract cancelPayment?(request: any): Promise<any>;
+  // // Abstract methods to be implemented by concrete classes
+  abstract initiatePayment(request: InitiatePaymentRequest): Promise<InitiatePaymentResponse>;
+  abstract verifyPayment(request: VerifyPaymentRequest): Promise<VerifyPaymentResponse>;
+  abstract getPayment(request: GetPaymentRequest): Promise<GetPaymentResponse>;
+  abstract refundPayment(request: RefundPaymentRequest): Promise<RefundPaymentResponse>;
+  abstract cancelPayment?(request: CancelPaymentRequest): Promise<CancelPaymentResponse>;
 }

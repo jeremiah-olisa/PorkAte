@@ -11,23 +11,31 @@ import {
   RefundPaymentResponse,
   CancelPaymentRequest,
   CancelPaymentResponse,
+  PaymentResponse,
   PaymentStatus,
-  PaymentChannel,
+  Currency,
   generateReference,
   PaymentConfigurationException,
-  PaymentGatewayException,
-  PaymentGatewayTimeoutException,
-  UnsupportedCurrencyException,
+  PaymentInvalidResponseError,
 } from '@porkate/payment';
 
 import {
   PaystackConfig,
   PaystackApiResponse,
   PaystackInitializeData,
-  PaystackTransactionData,
   PaystackRefundData,
 } from '../types';
-import { mapToPaystackCurrency, mapPaystackStatus, buildUrl, sanitizeMetadata } from '../utils';
+import {
+  mapToPaystackCurrency,
+  mapPaystackStatus,
+  sanitizeMetadata,
+  mapToPaystackAmount,
+  mapChannel,
+  mapPaystackChannel,
+} from '../utils';
+import { InitiatePaymentPayload, RefundPaymentPayload } from '../interfaces/paystack-request';
+import { PaystackTransactionData } from '../interfaces/paystack-transaction';
+import { MetadataParser } from '../utils/meta-data-parser';
 
 /**
  * Paystack payment gateway implementation
@@ -93,10 +101,13 @@ export class PaystackGateway implements IPaymentGateway {
     try {
       const reference = request.reference || generateReference('PAY');
       const currency = mapToPaystackCurrency(request.amount.currency);
+      const amount = mapToPaystackAmount(request.amount);
+      const channels = request.channels ? request.channels.map(mapChannel) : undefined;
 
-      const payload: any = {
+      const payload: InitiatePaymentPayload = {
+        amount,
         email: request.customer.email,
-        amount: request.amount.amount, // Amount should already be in kobo
+        channels,
         currency,
         reference,
         callback_url: request.callbackUrl,
@@ -109,7 +120,7 @@ export class PaystackGateway implements IPaymentGateway {
       };
 
       if (request.channels && request.channels.length > 0) {
-        payload.channels = request.channels.map(this.mapChannel);
+        payload.channels = request.channels.map(mapChannel);
       }
 
       const response = await this.client.post<PaystackApiResponse<PaystackInitializeData>>(
@@ -118,9 +129,10 @@ export class PaystackGateway implements IPaymentGateway {
       );
 
       if (!response.data.status || !response.data.data) {
-        throw new PaystackApiError(
+        throw new PaymentInvalidResponseError(
           response.data.message || 'Failed to initialize payment',
           response.status,
+          response.data,
         );
       }
 
@@ -137,7 +149,7 @@ export class PaystackGateway implements IPaymentGateway {
         raw: response.data,
       };
     } catch (error) {
-      return this.handleError(error, 'Failed to initiate payment');
+      return this.handleError(error, 'Failed to initiate payment') as InitiatePaymentResponse;
     }
   }
 
@@ -151,9 +163,10 @@ export class PaystackGateway implements IPaymentGateway {
       );
 
       if (!response.data.status || !response.data.data) {
-        throw new PaystackApiError(
+        throw new PaymentInvalidResponseError(
           response.data.message || 'Failed to verify payment',
           response.status,
+          response.data,
         );
       }
 
@@ -165,9 +178,9 @@ export class PaystackGateway implements IPaymentGateway {
         status: mapPaystackStatus(data.status) as PaymentStatus,
         amount: {
           amount: data.amount,
-          currency: data.currency as any,
+          currency: data.currency as Currency,
         },
-        channel: this.mapPaystackChannel(data.channel),
+        channel: mapPaystackChannel(data.channel),
         gatewayTransactionId: data.id.toString(),
         paidAt: data.paid_at ? new Date(data.paid_at) : undefined,
         customer: {
@@ -175,11 +188,11 @@ export class PaystackGateway implements IPaymentGateway {
           firstName: data.customer.first_name || undefined,
           lastName: data.customer.last_name || undefined,
         },
-        metadata: data.metadata,
+        metadata: MetadataParser.parseToObject(data.metadata),
         raw: response.data,
       };
     } catch (error) {
-      return this.handleError(error, 'Failed to verify payment');
+      return this.handleError(error, 'Failed to verify payment') as VerifyPaymentResponse;
     }
   }
 
@@ -193,9 +206,10 @@ export class PaystackGateway implements IPaymentGateway {
       );
 
       if (!response.data.status || !response.data.data) {
-        throw new PaystackApiError(
+        throw new PaymentInvalidResponseError(
           response.data.message || 'Failed to get payment',
           response.status,
+          response.data,
         );
       }
 
@@ -208,9 +222,9 @@ export class PaystackGateway implements IPaymentGateway {
         status: mapPaystackStatus(data.status) as PaymentStatus,
         amount: {
           amount: data.amount,
-          currency: data.currency as any,
+          currency: data.currency as Currency,
         },
-        channel: this.mapPaystackChannel(data.channel),
+        channel: mapPaystackChannel(data.channel),
         createdAt: new Date(data.created_at),
         paidAt: data.paid_at ? new Date(data.paid_at) : undefined,
         customer: {
@@ -231,11 +245,11 @@ export class PaystackGateway implements IPaymentGateway {
               reusable: data.authorization.reusable,
             }
           : undefined,
-        metadata: data.metadata,
+        metadata: MetadataParser.parseToObject(data.metadata),
         raw: response.data,
       };
     } catch (error) {
-      return this.handleError(error, 'Failed to get payment');
+      return this.handleError(error, 'Failed to get payment') as GetPaymentResponse;
     }
   }
 
@@ -244,7 +258,7 @@ export class PaystackGateway implements IPaymentGateway {
    */
   async refundPayment(request: RefundPaymentRequest): Promise<RefundPaymentResponse> {
     try {
-      const payload: any = {
+      const payload: RefundPaymentPayload = {
         transaction: request.reference,
       };
 
@@ -262,9 +276,10 @@ export class PaystackGateway implements IPaymentGateway {
       );
 
       if (!response.data.status || !response.data.data) {
-        throw new PaystackApiError(
+        throw new PaymentInvalidResponseError(
           response.data.message || 'Failed to refund payment',
           response.status,
+          response.data,
         );
       }
 
@@ -276,7 +291,7 @@ export class PaystackGateway implements IPaymentGateway {
         refundReference: data.id.toString(),
         amount: {
           amount: data.amount,
-          currency: data.currency as any,
+          currency: data.currency as Currency,
         },
         status: mapPaystackStatus(data.status) as PaymentStatus,
         refundedAt: data.refunded_at ? new Date(data.refunded_at) : undefined,
@@ -284,7 +299,7 @@ export class PaystackGateway implements IPaymentGateway {
         raw: response.data,
       };
     } catch (error) {
-      return this.handleError(error, 'Failed to refund payment');
+      return this.handleError(error, 'Failed to refund payment') as RefundPaymentResponse;
     }
   }
 
@@ -307,7 +322,7 @@ export class PaystackGateway implements IPaymentGateway {
         raw: verifyResponse.raw,
       };
     } catch (error) {
-      return this.handleError(error, 'Failed to cancel payment');
+      return this.handleError(error, 'Failed to cancel payment') as CancelPaymentResponse;
     }
   }
 
@@ -326,43 +341,9 @@ export class PaystackGateway implements IPaymentGateway {
   }
 
   /**
-   * Map standard payment channel to Paystack channel
-   */
-  private mapChannel(channel: PaymentChannel): string {
-    const channelMap: Record<PaymentChannel, string> = {
-      [PaymentChannel.CARD]: 'card',
-      [PaymentChannel.BANK]: 'bank',
-      [PaymentChannel.BANK_TRANSFER]: 'bank_transfer',
-      [PaymentChannel.USSD]: 'ussd',
-      [PaymentChannel.QR]: 'qr',
-      [PaymentChannel.MOBILE_MONEY]: 'mobile_money',
-      [PaymentChannel.EFT]: 'eft',
-    };
-
-    return channelMap[channel] || 'card';
-  }
-
-  /**
-   * Map Paystack channel to standard payment channel
-   */
-  private mapPaystackChannel(channel: string): PaymentChannel {
-    const channelMap: Record<string, PaymentChannel> = {
-      card: PaymentChannel.CARD,
-      bank: PaymentChannel.BANK,
-      bank_transfer: PaymentChannel.BANK_TRANSFER,
-      ussd: PaymentChannel.USSD,
-      qr: PaymentChannel.QR,
-      mobile_money: PaymentChannel.MOBILE_MONEY,
-      eft: PaymentChannel.EFT,
-    };
-
-    return channelMap[channel.toLowerCase()] || PaymentChannel.CARD;
-  }
-
-  /**
    * Handle errors and convert to standard payment response
    */
-  private handleError(error: any, defaultMessage: string): any {
+  private handleError(error: unknown, defaultMessage: string): PaymentResponse {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<PaystackApiResponse>;
       const message = axiosError.response?.data?.message || axiosError.message || defaultMessage;
@@ -397,13 +378,14 @@ export class PaystackGateway implements IPaymentGateway {
     }
 
     // Handle payment exceptions from core
-    if (error.name && error.name.includes('Exception')) {
+    if (error instanceof Error && error.name && error.name.includes('Exception')) {
+      const paymentError = error as Error & { code?: string; details?: unknown };
       return {
         success: false,
         error: {
-          code: error.code || 'PAYMENT_ERROR',
+          code: paymentError.code || 'PAYMENT_ERROR',
           message: error.message || defaultMessage,
-          details: error.details,
+          details: paymentError.details,
         },
       };
     }
@@ -412,7 +394,7 @@ export class PaystackGateway implements IPaymentGateway {
       success: false,
       error: {
         code: 'UNKNOWN_ERROR',
-        message: error.message || defaultMessage,
+        message: error instanceof Error ? error.message : defaultMessage,
         details: error,
       },
     };

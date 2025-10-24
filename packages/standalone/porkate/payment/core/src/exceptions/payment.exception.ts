@@ -1,3 +1,4 @@
+import { nameof } from '../utils';
 import { PaymentErrorCode } from './payment-error-codes';
 
 /**
@@ -13,7 +14,7 @@ export class PaymentException<TDetails = unknown> extends Error {
   ) {
     super(message);
     this._code = code;
-    this.name = 'PaymentException';
+    this.name = nameof(PaymentException);
     Object.setPrototypeOf(this, PaymentException.prototype);
   }
 
@@ -37,7 +38,7 @@ export class PaymentException<TDetails = unknown> extends Error {
 export class PaymentConfigurationException<TDetails = unknown> extends PaymentException<TDetails> {
   constructor(message: string, details?: TDetails) {
     super(message, PaymentErrorCode.PAYMENT_CONFIGURATION_ERROR, details);
-    this.name = 'PaymentConfigurationException';
+    this.name = nameof(PaymentConfigurationException);
     Object.setPrototypeOf(this, PaymentConfigurationException.prototype);
   }
 }
@@ -48,7 +49,7 @@ export class PaymentConfigurationException<TDetails = unknown> extends PaymentEx
 export class PaymentInitializationException<TDetails = unknown> extends PaymentException<TDetails> {
   constructor(message: string, details?: TDetails) {
     super(message, PaymentErrorCode.PAYMENT_INITIALIZATION_ERROR, details);
-    this.name = 'PaymentInitializationException';
+    this.name = nameof(PaymentInitializationException);
     Object.setPrototypeOf(this, PaymentInitializationException.prototype);
   }
 }
@@ -59,7 +60,7 @@ export class PaymentInitializationException<TDetails = unknown> extends PaymentE
 export class PaymentVerificationException<TDetails = unknown> extends PaymentException<TDetails> {
   constructor(message: string, details?: TDetails) {
     super(message, PaymentErrorCode.PAYMENT_VERIFICATION_ERROR, details);
-    this.name = 'PaymentVerificationException';
+    this.name = nameof(PaymentVerificationException);
     Object.setPrototypeOf(this, PaymentVerificationException.prototype);
   }
 }
@@ -74,7 +75,7 @@ export class PaymentNotFoundException<TDetails = unknown> extends PaymentExcepti
       PaymentErrorCode.PAYMENT_NOT_FOUND,
       details,
     );
-    this.name = 'PaymentNotFoundException';
+    this.name = nameof(PaymentNotFoundException);
     Object.setPrototypeOf(this, PaymentNotFoundException.prototype);
   }
 }
@@ -85,7 +86,7 @@ export class PaymentNotFoundException<TDetails = unknown> extends PaymentExcepti
 export class PaymentRefundException<TDetails = unknown> extends PaymentException<TDetails> {
   constructor(message: string, details?: TDetails) {
     super(message, PaymentErrorCode.PAYMENT_REFUND_ERROR, details);
-    this.name = 'PaymentRefundException';
+    this.name = nameof(PaymentRefundException);
     Object.setPrototypeOf(this, PaymentRefundException.prototype);
   }
 }
@@ -96,7 +97,7 @@ export class PaymentRefundException<TDetails = unknown> extends PaymentException
 export class PaymentCancellationException<TDetails = unknown> extends PaymentException<TDetails> {
   constructor(message: string, details?: TDetails) {
     super(message, PaymentErrorCode.PAYMENT_CANCELLATION_ERROR, details);
-    this.name = 'PaymentCancellationException';
+    this.name = nameof(PaymentCancellationException);
     Object.setPrototypeOf(this, PaymentCancellationException.prototype);
   }
 }
@@ -111,7 +112,7 @@ export class PaymentGatewayException<TDetails = unknown> extends PaymentExceptio
     details?: TDetails,
   ) {
     super(message, PaymentErrorCode.PAYMENT_GATEWAY_ERROR, details);
-    this.name = 'PaymentGatewayException';
+    this.name = nameof(PaymentGatewayException);
     Object.setPrototypeOf(this, PaymentGatewayException.prototype);
   }
 
@@ -131,7 +132,7 @@ export class PaymentGatewayTimeoutException<
 > extends PaymentGatewayException<TDetails> {
   constructor(message: string = 'Payment gateway request timed out', details?: TDetails) {
     super(message, 408, details);
-    this.name = 'PaymentGatewayTimeoutException';
+    this.name = nameof(PaymentGatewayTimeoutException);
     Object.setPrototypeOf(this, PaymentGatewayTimeoutException.prototype);
   }
 
@@ -153,7 +154,7 @@ export class InvalidPaymentAmountException<TDetails = unknown> extends PaymentEx
       currency,
       reason,
     } as TDetails);
-    this.name = 'InvalidPaymentAmountException';
+    this.name = nameof(InvalidPaymentAmountException);
     Object.setPrototypeOf(this, InvalidPaymentAmountException.prototype);
   }
 }
@@ -170,7 +171,7 @@ export class UnsupportedCurrencyException<TDetails = unknown> extends PaymentExc
       currency,
       supportedCurrencies,
     } as TDetails);
-    this.name = 'UnsupportedCurrencyException';
+    this.name = nameof(UnsupportedCurrencyException);
     Object.setPrototypeOf(this, UnsupportedCurrencyException.prototype);
   }
 }
@@ -189,7 +190,7 @@ export class UnsupportedPaymentChannelException<
       channel,
       supportedChannels,
     } as TDetails);
-    this.name = 'UnsupportedPaymentChannelException';
+    this.name = nameof(UnsupportedPaymentChannelException);
     Object.setPrototypeOf(this, UnsupportedPaymentChannelException.prototype);
   }
 }
@@ -204,7 +205,7 @@ export class PaymentValidationException<TDetails = unknown> extends PaymentExcep
     details?: TDetails,
   ) {
     super(message, PaymentErrorCode.PAYMENT_VALIDATION_ERROR, { field, ...details } as TDetails);
-    this.name = 'PaymentValidationException';
+    this.name = nameof(PaymentValidationException);
     Object.setPrototypeOf(this, PaymentValidationException.prototype);
   }
 }
@@ -219,7 +220,7 @@ export class DuplicatePaymentException<TDetails = unknown> extends PaymentExcept
       PaymentErrorCode.DUPLICATE_PAYMENT,
       { reference, ...details } as TDetails,
     );
-    this.name = 'DuplicatePaymentException';
+    this.name = nameof(DuplicatePaymentException);
     Object.setPrototypeOf(this, DuplicatePaymentException.prototype);
   }
 }
@@ -234,7 +235,7 @@ export class InvalidRefundAmountException<TDetails = unknown> extends PaymentExc
       PaymentErrorCode.INVALID_REFUND_AMOUNT,
       { refundAmount, paymentAmount, ...details } as TDetails,
     );
-    this.name = 'InvalidRefundAmountException';
+    this.name = nameof(InvalidRefundAmountException);
     Object.setPrototypeOf(this, InvalidRefundAmountException.prototype);
   }
 }
@@ -252,7 +253,29 @@ export class PaymentNotRefundableException<TDetails = unknown> extends PaymentEx
       reason,
       ...details,
     } as TDetails);
-    this.name = 'PaymentNotRefundableException';
+    this.name = nameof(PaymentNotRefundableException);
     Object.setPrototypeOf(this, PaymentNotRefundableException.prototype);
+  }
+}
+
+/**
+ * Exception thrown when Payment API returns an invalid response structure
+ */
+export class PaymentInvalidResponseError<TDetails = unknown> extends PaymentException<TDetails> {
+  constructor(
+    message: string = 'Payment API returned an invalid response structure',
+    public responseData?: unknown,
+    details?: unknown,
+  ) {
+    super(
+      message,
+      PaymentErrorCode.PAYMENT_INVALID_RESPONSE_ERROR,
+      ({
+        responseData,
+        ...(details && typeof details === 'object' ? details : { details }),
+      } as unknown) as TDetails,
+    );
+    this.name = nameof(PaymentInvalidResponseError);
+    Object.setPrototypeOf(this, PaymentInvalidResponseError.prototype);
   }
 }

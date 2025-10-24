@@ -4,6 +4,7 @@
 export enum PaymentErrorCode {
   // General payment errors
   PAYMENT_ERROR = 'PAYMENT_ERROR',
+  PAYMENT_INVALID_RESPONSE_ERROR = 'PAYMENT_INVALID_RESPONSE_ERROR',
 
   // Configuration errors
   PAYMENT_CONFIGURATION_ERROR = 'PAYMENT_CONFIGURATION_ERROR',

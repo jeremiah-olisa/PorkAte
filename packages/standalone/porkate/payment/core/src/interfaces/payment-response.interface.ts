@@ -17,6 +17,7 @@ export interface PaymentResponse {
   /**
    * Gateway-specific response data
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   raw?: any;
 }
 
