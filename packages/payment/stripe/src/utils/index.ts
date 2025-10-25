@@ -80,8 +80,17 @@ export function mapToStripeAmount(money: Money): number {
     ? Math.round(money.amount)
     : Math.round(money.amount * CURRENCY_SUBUNIT_DIVISOR);
 
-  // Validate the converted amount
-  validateStripeAmount({ amount: amountInSmallestUnit, currency: money.currency });
+  // Validate the converted amount against the minimum in smallest units
+  if (amountInSmallestUnit < config.minimum) {
+    const displayAmount = config.zeroDecimal
+      ? config.minimum
+      : config.minimum / CURRENCY_SUBUNIT_DIVISOR;
+    throw new PaymentValidationException(
+      `Amount is below minimum of ${displayAmount} ${money.currency}`,
+      'amount',
+      { amount: amountInSmallestUnit, minimum: config.minimum },
+    );
+  }
 
   return amountInSmallestUnit;
 }

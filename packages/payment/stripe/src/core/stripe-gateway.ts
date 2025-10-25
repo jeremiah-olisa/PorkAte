@@ -101,9 +101,10 @@ export class StripeGateway implements IPaymentGateway {
       return {
         success: true,
         reference,
-        authorizationUrl: paymentIntent.client_secret
-          ? `https://checkout.stripe.com/pay/${paymentIntent.client_secret}`
-          : undefined,
+        // Note: For Stripe, the client_secret should be used on the frontend with Stripe Elements
+        // The authorizationUrl is set to undefined as Stripe doesn't provide a hosted checkout URL
+        // from PaymentIntent. Use Checkout Sessions for hosted checkout.
+        authorizationUrl: undefined,
         accessCode: paymentIntent.client_secret || undefined,
         amount: request.amount,
         status: mapStripeStatus(paymentIntent.status) as PaymentStatus,
