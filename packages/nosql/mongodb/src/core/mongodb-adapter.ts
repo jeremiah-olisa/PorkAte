@@ -1,7 +1,10 @@
-import { MongoClient, Db, Collection, Filter, Document, CreateIndexesOptions } from 'mongodb';
+import { MongoClient, Db, Collection, Filter, Document } from 'mongodb';
 import {
   BaseNoSQLAdapter,
   Transaction,
+  TransactionType,
+  TransactionStatus,
+  Currency,
   QueryOptions,
   PaginatedResult,
   BulkInsertOptions,
@@ -60,7 +63,7 @@ export class MongoDBAdapter extends BaseNoSQLAdapter {
     }
 
     try {
-      const clientOptions: any = {
+      const clientOptions: Record<string, unknown> = {
         maxPoolSize: this.mongoConfig.poolSize || 10,
         ...(this.mongoConfig.username &&
           this.mongoConfig.password && {
@@ -196,8 +199,9 @@ export class MongoDBAdapter extends BaseNoSQLAdapter {
         successful: result.insertedCount,
         failed: transactions.length - result.insertedCount,
       };
-    } catch (error: any) {
-      const successful = error.result?.insertedCount || 0;
+    } catch (error: unknown) {
+      const errorObj = error as { result?: { insertedCount?: number } };
+      const successful = errorObj.result?.insertedCount || 0;
       const failed = transactions.length - successful;
 
       if (throwOnError) {
@@ -527,22 +531,22 @@ export class MongoDBAdapter extends BaseNoSQLAdapter {
    */
   private documentToTransaction(doc: Document): Transaction {
     return {
-      id: doc.id,
-      reference: doc.reference,
-      type: doc.type,
-      sourceWalletId: doc.sourceWalletId,
-      destinationWalletId: doc.destinationWalletId,
-      amount: doc.amount,
-      currency: doc.currency,
-      fees: doc.fees,
-      status: doc.status,
-      narration: doc.narration,
-      metadata: doc.metadata,
-      idempotencyKey: doc.idempotencyKey,
-      hash: doc.hash,
-      createdAt: new Date(doc.createdAt),
-      updatedAt: new Date(doc.updatedAt),
-      completedAt: doc.completedAt ? new Date(doc.completedAt) : undefined,
+      id: doc.id as string,
+      reference: doc.reference as string,
+      type: doc.type as TransactionType,
+      sourceWalletId: doc.sourceWalletId as string | undefined,
+      destinationWalletId: doc.destinationWalletId as string | undefined,
+      amount: doc.amount as number,
+      currency: doc.currency as Currency,
+      fees: doc.fees as number | undefined,
+      status: doc.status as TransactionStatus,
+      narration: doc.narration as string | undefined,
+      metadata: doc.metadata as Record<string, unknown> | undefined,
+      idempotencyKey: doc.idempotencyKey as string | undefined,
+      hash: doc.hash as string | undefined,
+      createdAt: new Date(doc.createdAt as string | number | Date),
+      updatedAt: new Date(doc.updatedAt as string | number | Date),
+      completedAt: doc.completedAt ? new Date(doc.completedAt as string | number | Date) : undefined,
     };
   }
 }

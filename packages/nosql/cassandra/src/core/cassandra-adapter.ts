@@ -2,6 +2,9 @@ import { Client, types, DseClientOptions } from 'cassandra-driver';
 import {
   BaseNoSQLAdapter,
   Transaction,
+  TransactionType,
+  TransactionStatus,
+  Currency,
   QueryOptions,
   PaginatedResult,
   BulkInsertOptions,
@@ -515,24 +518,24 @@ export class CassandraAdapter extends BaseNoSQLAdapter {
   /**
    * Map Cassandra row to Transaction object
    */
-  private mapRowToTransaction(row: any): Transaction {
+  private mapRowToTransaction(row: Record<string, unknown>): Transaction {
     return {
-      id: row.id.toString(),
-      reference: row.reference,
-      type: row.type,
-      sourceWalletId: row.source_wallet_id,
-      destinationWalletId: row.destination_wallet_id,
-      amount: parseFloat(row.amount),
-      currency: row.currency,
-      fees: row.fees ? parseFloat(row.fees) : undefined,
-      status: row.status,
-      narration: row.narration,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
-      idempotencyKey: row.idempotency_key,
-      hash: row.hash,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-      completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
+      id: (row.id as { toString: () => string }).toString(),
+      reference: row.reference as string,
+      type: row.type as TransactionType,
+      sourceWalletId: row.source_wallet_id as string | undefined,
+      destinationWalletId: row.destination_wallet_id as string | undefined,
+      amount: parseFloat(row.amount as string),
+      currency: row.currency as Currency,
+      fees: row.fees ? parseFloat(row.fees as string) : undefined,
+      status: row.status as TransactionStatus,
+      narration: row.narration as string | undefined,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
+      idempotencyKey: row.idempotency_key as string | undefined,
+      hash: row.hash as string | undefined,
+      createdAt: new Date(row.created_at as string | number | Date),
+      updatedAt: new Date(row.updated_at as string | number | Date),
+      completedAt: row.completed_at ? new Date(row.completed_at as string | number | Date) : undefined,
     };
   }
 }
