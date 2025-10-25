@@ -111,7 +111,8 @@ const s3Config: S3Config = {
 const s3Storage = new S3StorageAdapter(s3Config);
 
 // Note: The S3 adapter is a placeholder. You need to:
-// 1. Install @aws-sdk/client-s3
+// 1. Install @aws-sdk/client-s3 (^3.0.0 or later)
+//    npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
 // 2. Implement the actual AWS SDK integration
 // The placeholder includes detailed comments showing how to integrate
 ```
@@ -133,7 +134,8 @@ const cloudinaryConfig: CloudinaryConfig = {
 const cloudinaryStorage = new CloudinaryStorageAdapter(cloudinaryConfig);
 
 // Note: The Cloudinary adapter is a placeholder. You need to:
-// 1. Install cloudinary npm package
+// 1. Install cloudinary npm package (^1.40.0 or later)
+//    npm install cloudinary
 // 2. Implement the actual Cloudinary integration
 // The placeholder includes detailed comments showing how to integrate
 ```
@@ -191,8 +193,8 @@ const ready = manager.getReadyAdapters(); // Only properly configured adapters
 
 ## Notes
 
-- The Local adapter is fully implemented and production-ready
-- S3 and Cloudinary adapters are placeholders with detailed implementation guides
-- Azure adapter is a basic placeholder
+- The **Local adapter** is fully implemented and production-ready
+- **S3 and Cloudinary adapters** are placeholders with detailed implementation guides in the source code comments. They include the complete structure and commented-out code examples showing exactly how to integrate with the respective SDKs.
+- **Azure adapter** is a minimal placeholder that returns "NOT_IMPLEMENTED" errors. It requires full implementation following the S3/Cloudinary pattern.
 - All adapters follow the same interface for consistency
 - The Storage Manager supports fallback between adapters for reliability
