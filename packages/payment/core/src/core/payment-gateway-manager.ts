@@ -10,14 +10,14 @@ import {
 /**
  * Payment Gateway Manager - Factory pattern for managing multiple payment adapters
  */
-export class PaymentGatewayManager {
+export class PaymentGatewayManager<TConfig = GatewayEnvConfig> {
   private readonly gateways: Map<string, IPaymentGateway> = new Map();
   private readonly factories: Map<string, GatewayFactory> = new Map();
-  private readonly gatewayConfigs: Map<string, GatewayConfig> = new Map();
+  private readonly gatewayConfigs: Map<string, GatewayConfig<TConfig>> = new Map();
   private defaultGateway?: string;
   private enableFallback: boolean = false;
 
-  constructor(config?: PaymentGatewayManagerConfig) {
+  constructor(config?: PaymentGatewayManagerConfig<TConfig>) {
     if (config) {
       this.defaultGateway = config.defaultGateway;
       this.enableFallback = config.enableFallback ?? false;
@@ -34,7 +34,7 @@ export class PaymentGatewayManager {
    * @param name - Name of the gateway (e.g., 'paystack', 'flutterwave')
    * @param factory - Factory function to create the gateway instance
    */
-  registerFactory<T = GatewayEnvConfig>(name: string, factory: GatewayFactory<T>): this {
+  registerFactory<T extends TConfig>(name: string, factory: GatewayFactory<T>): this {
     this.factories.set(name.toLowerCase(), factory as GatewayFactory<GatewayEnvConfig>);
 
     // If we have a config for this gateway, initialize it

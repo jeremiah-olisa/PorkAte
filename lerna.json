@@ -15,9 +15,11 @@
   },
   "packages": [
     "packages/core",
-    "packages/nosql/**",
-    "packages/payment/**",
+    "packages/nosql",
+
+
     "packages/standalone/**",
+
     "examples/**"
   ]
 }
