@@ -200,11 +200,16 @@ export function nameof<T = unknown>(arg: string | object | (() => T) | Function)
     //  () => obj.prop
     //  () => obj['prop']
     //  function() { return obj.prop; }
-    const propMatch = fnStr?.match(
-      /(?:return\s+|=>\s*)(?:.*?\[['"]([^'"]+)['"]|.*?\.([A-Za-z_$][A-Za-z0-9_$]*))/,
-    );
-    if (propMatch) {
-      return propMatch[1] || propMatch[2];
+    // First try bracket notation
+    const bracketMatch = fnStr?.match(/\[['"]([^'"]+)['"]\]/);
+    if (bracketMatch) {
+      return bracketMatch[1];
+    }
+
+    // Then try dot notation after arrow or return
+    const dotMatch = fnStr?.match(/(?:return\s+|=>\s*)[^.]*?\.([A-Za-z_$][A-Za-z0-9_$]*)/);
+    if (dotMatch) {
+      return dotMatch[1];
     }
 
     // Fall back to function/class name if present
