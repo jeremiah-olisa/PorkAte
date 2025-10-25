@@ -16,10 +16,7 @@
   "packages": [
     "packages/core",
     "packages/nosql",
-
-
     "packages/standalone/**",
-
     "examples/**"
   ]
 }
