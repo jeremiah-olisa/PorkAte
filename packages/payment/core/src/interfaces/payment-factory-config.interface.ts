@@ -28,11 +28,11 @@ export interface GatewayConfig<TConfig = GatewayEnvConfig> {
 /**
  * Configuration for the payment gateway manager
  */
-export interface PaymentGatewayManagerConfig {
+export interface PaymentGatewayManagerConfig<TConfig = any> {
   /**
    * List of gateway configurations
    */
-  gateways: GatewayConfig[];
+  gateways: GatewayConfig<TConfig>[];
 
   /**
    * Default gateway to use if none specified
