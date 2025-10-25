@@ -206,8 +206,8 @@ export function nameof<T = unknown>(arg: string | object | (() => T) | Function)
       return bracketMatch[1];
     }
 
-    // Then try dot notation after arrow or return
-    const dotMatch = fnStr?.match(/(?:return\s+|=>\s*)[^.]*?\.([A-Za-z_$][A-Za-z0-9_$]*)/);
+    // Then try dot notation - match the last property access
+    const dotMatch = fnStr?.match(/\.([A-Za-z_$][A-Za-z0-9_$]*)(?:\s*\)|$)/);
     if (dotMatch) {
       return dotMatch[1];
     }
