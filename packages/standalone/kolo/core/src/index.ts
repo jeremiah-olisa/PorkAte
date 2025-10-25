@@ -1,8 +1,7 @@
 // Main exports
-export * from './core/storage-client';
-export * from './core/kolo';
-export * from './adapters/local';
-export * from './adapters/s3';
-export * from './adapters/azure';
+export * from './core';
+export * from './adapters';
 export * from './types';
 export * from './interfaces';
+export * from './exceptions';
+export * from './utils';
