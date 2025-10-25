@@ -6,7 +6,7 @@ import { PaymentGatewayManager, Currency, PaymentStatus } from '@porkate/payment
 import { PaystackConfig, PaystackGateway } from '@porkate/paystack';
 
 // Initialize the manager
-const paymentManager = new PaymentGatewayManager({
+const paymentManager = new PaymentGatewayManager<PaystackConfig>({
   gateways: [
     {
       name: 'paystack',
@@ -16,7 +16,7 @@ const paymentManager = new PaymentGatewayManager({
         baseUrl: '',
         publicKey: '',
         timeout: 30000,
-      },
+      } as PaystackConfig,
       enabled: true,
       priority: 100,
     },
@@ -145,12 +145,12 @@ async function main() {
   const payment = await processPayment();
 
   // If you have a reference from a real payment, verify it
-  // const reference = 'PAY-12345678';
-  // await verifyPayment(reference);
-  // await getPaymentDetails(reference);
+  const reference = 'PAY-12345678';
+  await verifyPayment(payment?.reference || reference);
+  await getPaymentDetails(payment?.reference || reference);
 }
 
 // Uncomment to run
-// main().catch(console.error);
+main().catch(console.error);
 
 export { paymentManager, processPayment, verifyPayment, getPaymentDetails, checkGateways };

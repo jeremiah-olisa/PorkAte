@@ -14,16 +14,12 @@
     }
   },
   "packages": [
-    // Core (non-extractable)
     "packages/core",
     "packages/nosql",
 
 
-    // Standalone (extractable)
-    // Invalid8 - Caching
-    "packages/standalone/**"
+    "packages/standalone/**",
 
-    // Examples
-    "examples/**",
+    "examples/**"
   ]
 }
