@@ -5,7 +5,6 @@ import {
   SendPushResponse,
   NotificationStatus,
   NotificationConfigurationException,
-  NotificationProviderException,
   generateReference,
   sanitizeMetadata,
 } from '@townkrier/core';
@@ -87,7 +86,8 @@ export class FcmChannel extends PushChannel {
       // Add platform-specific configurations
       if (request.icon || request.sound || request.badge) {
         message.android = {
-          priority: request.priority === 'urgent' || request.priority === 'high' ? 'high' : 'normal',
+          priority:
+            request.priority === 'urgent' || request.priority === 'high' ? 'high' : 'normal',
           notification: {
             icon: request.icon,
             sound: request.sound,
@@ -178,8 +178,7 @@ export class FcmChannel extends PushChannel {
         success: response.successCount > 0,
         messageId,
         reference,
-        status:
-          response.successCount > 0 ? NotificationStatus.SENT : NotificationStatus.FAILED,
+        status: response.successCount > 0 ? NotificationStatus.SENT : NotificationStatus.FAILED,
         sentAt: new Date(),
         successCount: response.successCount,
         failureCount: response.failureCount,

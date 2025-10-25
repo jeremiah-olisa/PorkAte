@@ -1,9 +1,12 @@
 packages:
-  # Core PorkAte packages (non-extractable)
-    - 'packages/**'
-    
-    # Standalone packages (extraction-ready - can move to separate repos)
-    - 'packages/standalone/**'
-    
-    # Examples
-    - 'examples/**'
+  # Core
+  - 'packages/core/**'
+  - 'packages/nosql/**'
+  - 'packages/payment/**'
+
+  # Standalone
+  # Invalid8 - Caching system
+  - 'packages/standalone/**'
+
+  # Examples
+  - 'examples/**'

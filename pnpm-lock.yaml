@@ -43,10 +43,10 @@ importers:
     dependencies:
       '@porkate/payment':
         specifier: workspace:*
-        version: link:../../packages/standalone/porkate/payment/core
+        version: link:../../packages/payment/core
       '@porkate/paystack':
         specifier: workspace:*
-        version: link:../../packages/standalone/porkate/payment/paystack
+        version: link:../../packages/payment/paystack
     devDependencies:
       '@types/jest':
         specifier: ^30.0.0
@@ -68,7 +68,7 @@ importers:
     dependencies:
       '@eventbus/core':
         specifier: workspace:*
-        version: link:../standalone/eventbus/core
+        version: link:../standalone/invalid8/event/core
       '@invalid8/core':
         specifier: workspace:*
         version: link:../standalone/invalid8/core
@@ -83,7 +83,7 @@ importers:
         version: 10.4.20(@nestjs/common@10.4.20)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@porkate/payment':
         specifier: workspace:*
-        version: link:../standalone/porkate/payment/core
+        version: link:../payment/core
       '@prisma/client':
         specifier: ^6.18.0
         version: 6.18.0(prisma@6.18.0)(typescript@5.9.3)
@@ -131,7 +131,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/standalone/eventbus/core:
+  packages/payment/core:
     devDependencies:
       '@types/jest':
         specifier: ^30.0.0
@@ -152,11 +152,14 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/standalone/invalid8/core:
+  packages/payment/flutterwave:
     dependencies:
-      '@eventbus/core':
+      '@porkate/payment':
         specifier: workspace:*
-        version: link:../../eventbus/core
+        version: link:../core
+      axios:
+        specifier: ^1.12.2
+        version: 1.12.2
     devDependencies:
       '@types/jest':
         specifier: ^30.0.0
@@ -173,6 +176,179 @@ importers:
       ts-jest:
         specifier: ^29.4.5
         version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/payment/paystack:
+    dependencies:
+      '@porkate/payment':
+        specifier: workspace:*
+        version: link:../core
+      axios:
+        specifier: ^1.12.2
+        version: 1.12.2
+    devDependencies:
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
+      jest:
+        specifier: ^30.2.0
+        version: 30.2.0(@types/node@24.9.1)
+      ts-jest:
+        specifier: ^29.4.5
+        version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/payment/stripe:
+    dependencies:
+      '@porkate/payment':
+        specifier: workspace:*
+        version: link:../core
+      stripe:
+        specifier: ^19.1.0
+        version: 19.1.0(@types/node@24.9.1)
+    devDependencies:
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
+      jest:
+        specifier: ^30.2.0
+        version: 30.2.0(@types/node@24.9.1)
+      ts-jest:
+        specifier: ^29.4.5
+        version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/standalone/invalid8/cache/memory:
+    dependencies:
+      '@invalid8/core':
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/standalone/invalid8/cache/redis:
+    dependencies:
+      '@invalid8/core':
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/standalone/invalid8/core:
+    dependencies:
+      '@eventbus/core':
+        specifier: workspace:*
+        version: link:../event/core
+    devDependencies:
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
+      jest:
+        specifier: ^30.2.0
+        version: 30.2.0(@types/node@24.9.1)
+      ts-jest:
+        specifier: ^29.4.5
+        version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/standalone/invalid8/event/core:
+    devDependencies:
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
+      jest:
+        specifier: ^30.2.0
+        version: 30.2.0(@types/node@24.9.1)
+      ts-jest:
+        specifier: ^29.4.5
+        version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/standalone/invalid8/event/kafka:
+    dependencies:
+      '@eventbus/core':
+        specifier: workspace:*
+        version: link:../core
+      kafkajs:
+        specifier: ^2.0.0
+        version: 2.2.4
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/standalone/invalid8/event/memory:
+    dependencies:
+      '@eventbus/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/standalone/invalid8/event/rabbitmq:
+    dependencies:
+      '@eventbus/core':
+        specifier: workspace:*
+        version: link:../core
+      amqplib:
+        specifier: ^0.10.0
+        version: 0.10.9
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.9.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -191,111 +367,6 @@ importers:
       cloudinary:
         specifier: ^1.40.0
         version: 1.41.3
-    devDependencies:
-      '@types/jest':
-        specifier: ^30.0.0
-        version: 30.0.0
-      '@types/mocha':
-        specifier: ^10.0.10
-        version: 10.0.10
-      '@types/node':
-        specifier: ^24.9.1
-        version: 24.9.1
-      jest:
-        specifier: ^30.2.0
-        version: 30.2.0(@types/node@24.9.1)
-      ts-jest:
-        specifier: ^29.4.5
-        version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  packages/standalone/porkate/payment/core:
-    devDependencies:
-      '@types/jest':
-        specifier: ^30.0.0
-        version: 30.0.0
-      '@types/mocha':
-        specifier: ^10.0.10
-        version: 10.0.10
-      '@types/node':
-        specifier: ^24.9.1
-        version: 24.9.1
-      jest:
-        specifier: ^30.2.0
-        version: 30.2.0(@types/node@24.9.1)
-      ts-jest:
-        specifier: ^29.4.5
-        version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  packages/standalone/porkate/payment/flutterwave:
-    dependencies:
-      '@porkate/payment':
-        specifier: workspace:*
-        version: link:../core
-      axios:
-        specifier: ^1.12.2
-        version: 1.12.2
-    devDependencies:
-      '@types/jest':
-        specifier: ^30.0.0
-        version: 30.0.0
-      '@types/mocha':
-        specifier: ^10.0.10
-        version: 10.0.10
-      '@types/node':
-        specifier: ^24.9.1
-        version: 24.9.1
-      jest:
-        specifier: ^30.2.0
-        version: 30.2.0(@types/node@24.9.1)
-      ts-jest:
-        specifier: ^29.4.5
-        version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  packages/standalone/porkate/payment/paystack:
-    dependencies:
-      '@porkate/payment':
-        specifier: workspace:*
-        version: link:../core
-      axios:
-        specifier: ^1.12.2
-        version: 1.12.2
-    devDependencies:
-      '@types/jest':
-        specifier: ^30.0.0
-        version: 30.0.0
-      '@types/mocha':
-        specifier: ^10.0.10
-        version: 10.0.10
-      '@types/node':
-        specifier: ^24.9.1
-        version: 24.9.1
-      jest:
-        specifier: ^30.2.0
-        version: 30.2.0(@types/node@24.9.1)
-      ts-jest:
-        specifier: ^29.4.5
-        version: 29.4.5(@babel/core@7.28.5)(jest@30.2.0)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  packages/standalone/porkate/payment/stripe:
-    dependencies:
-      '@porkate/payment':
-        specifier: workspace:*
-        version: link:../core
-      stripe:
-        specifier: ^19.1.0
-        version: 19.1.0(@types/node@24.9.1)
     devDependencies:
       '@types/jest':
         specifier: ^30.0.0
@@ -2759,8 +2830,8 @@ packages:
     dev: false
     optional: true
 
-  /@paralleldrive/cuid2@2.2.2:
-    resolution: {integrity: sha512-ZOBkgDwEdoYVlSeRbYYXs0S9MejQofiVYoTbKzy/6GQa39/q5tQU2IX46+shYnUkpEl3wc+J6wRlar7r2EK2xA==}
+  /@paralleldrive/cuid2@2.3.1:
+    resolution: {integrity: sha512-XO7cAxhnTZl0Yggq6jOgjiOHhbgcO4NqFqwSmQpjK3b6TEE6Uj/jfSk6wzYyemh3+I0sHirKSetjQwn5cZktFw==}
     dependencies:
       '@noble/hashes': 1.8.0
     dev: false
@@ -4285,6 +4356,7 @@ packages:
   /agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
+    requiresBuild: true
     dependencies:
       debug: 4.4.3
     transitivePeerDependencies:
@@ -4311,6 +4383,14 @@ packages:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
     dev: true
+
+  /amqplib@0.10.9:
+    resolution: {integrity: sha512-jwSftI4QjS3mizvnSnOrPGYiUnm1vI2OP1iXeOUz5pb74Ua0nbf6nPyyTzuiCLEE3fMpaJORXh2K/TQ08H5xGA==}
+    engines: {node: '>=10'}
+    dependencies:
+      buffer-more-ints: 1.0.0
+      url-parse: 1.5.10
+    dev: false
 
   /ansi-colors@4.1.3:
     resolution: {integrity: sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw==}
@@ -4613,6 +4693,10 @@ packages:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
     dev: true
 
+  /buffer-more-ints@1.0.0:
+    resolution: {integrity: sha512-EMetuGFz5SLsT0QTnXzINh4Ksr+oo4i+UGTXEshiGCQWnsgSs7ZhJ8fzlwQ+OzEMs0MpDAMr1hxnblp5a4vcHg==}
+    dev: false
+
   /buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
     dependencies:
@@ -4800,7 +4884,7 @@ packages:
     resolution: {integrity: sha512-3kMVRF2io8N8pY1IFIXlho9r8IPUUIfHe2hYVtiebvAzU2XeQFXTv+XI4WX+TnXmtwXMDcjngcpkiPM0O9PvLw==}
     dependencies:
       '@types/validator': 13.15.3
-      libphonenumber-js: 1.12.24
+      libphonenumber-js: 1.12.25
       validator: 13.15.15
     dev: false
 
@@ -6432,6 +6516,7 @@ packages:
   /https-proxy-agent@5.0.0:
     resolution: {integrity: sha512-EkYm5BcKUGiduxzSt3Eppko+PiNWNEpa4ySk9vTC6wDsQJW9rHSa+UhGNJoRYp7bz6Ht1eaRIa6QaJqO5rCFbA==}
     engines: {node: '>= 6'}
+    requiresBuild: true
     dependencies:
       agent-base: 6.0.2
       debug: 4.4.3
@@ -7403,6 +7488,11 @@ packages:
       safe-buffer: 5.2.1
     dev: false
 
+  /kafkajs@2.2.4:
+    resolution: {integrity: sha512-j/YeapB1vfPT2iOIUn/vxdyKEuhuY2PxMBvf5JWux6iSaukAccrMtXEY/Lb7OvavDhOWME589bpLrEdnVHjfjA==}
+    engines: {node: '>=14.0.0'}
+    dev: false
+
   /keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
     dependencies:
@@ -7568,8 +7658,8 @@ packages:
       - supports-color
     dev: true
 
-  /libphonenumber-js@1.12.24:
-    resolution: {integrity: sha512-l5IlyL9AONj4voSd7q9xkuQOL4u8Ty44puTic7J88CmdXkxfGsRfoVLXHCxppwehgpb/Chdb80FFehHqjN3ItQ==}
+  /libphonenumber-js@1.12.25:
+    resolution: {integrity: sha512-u90tUu/SEF8b+RaDKCoW7ZNFDakyBtFlX1ex3J+VH+ElWes/UaitJLt/w4jGu8uAE41lltV/s+kMVtywcMEg7g==}
     dev: false
 
   /lilconfig@3.1.3:
@@ -8117,6 +8207,7 @@ packages:
   /node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
     engines: {node: 4.x || >=6.0.0}
+    requiresBuild: true
     peerDependencies:
       encoding: ^0.1.0
     peerDependenciesMeta:
@@ -8423,7 +8514,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       bl: 4.1.0
-      chalk: 4.1.0
+      chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
       is-interactive: 1.0.0
@@ -8948,6 +9039,10 @@ packages:
       side-channel: 1.1.0
     dev: false
 
+  /querystringify@2.2.0:
+    resolution: {integrity: sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==}
+    dev: false
+
   /queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -9085,6 +9180,10 @@ packages:
   /require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
+
+  /requires-port@1.0.0:
+    resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
+    dev: false
 
   /resend@4.8.0(react-dom@19.2.0)(react@19.2.0):
     resolution: {integrity: sha512-R8eBOFQDO6dzRTDmaMEdpqrkmgSjPpVXt4nGfWsZdYOet0kqra0xgbvTES6HmCriZEXbmGk3e0DiGIaLFTFSHA==}
@@ -10044,6 +10143,13 @@ packages:
       punycode: 2.3.1
     dev: true
 
+  /url-parse@1.5.10:
+    resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==}
+    dependencies:
+      querystringify: 2.2.0
+      requires-port: 1.0.0
+    dev: false
+
   /util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
@@ -10067,6 +10173,7 @@ packages:
   /uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
+    requiresBuild: true
     dev: false
 
   /v8-compile-cache-lib@3.0.1:
@@ -10390,7 +10497,7 @@ packages:
       prisma: 5.0.0 - 6.17.x
       zod: ^3.25.0 || ^4.0.0
     dependencies:
-      '@paralleldrive/cuid2': 2.2.2
+      '@paralleldrive/cuid2': 2.3.1
       '@types/node': 24.9.1
       '@zenstackhq/language': 2.20.1
       '@zenstackhq/sdk': 2.20.1(@prisma/client@6.18.0)(typescript@5.9.3)(zod@4.1.12)
